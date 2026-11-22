@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>民泊売上</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f5f6f9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="民泊売上">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{
+  --ink:#1f2937; --sub:#6b7280; --mute:#9aa3b2; --line:#eceef3; --bg:#f5f6f9; --card:#ffffff;
+  --navy:#1f2a44; --accent:#4263eb; --air:#f0616d; --bkg:#2a5db0; --up:#0f9d6b; --down:#e0464f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px}
+.num{font-variant-numeric:tabular-nums}
+header{position:sticky;top:0;z-index:5;background:rgba(245,246,249,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
+.hrow{display:flex;align-items:center;justify-content:space-between}
+h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.02em}
+.upd{font-size:11px;color:var(--mute)}
+.btn-ref{border:0;background:#fff;border-radius:999px;padding:6px 12px;font-size:12px;color:var(--navy);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:0;border-radius:999px;padding:7px 13px;background:#fff;color:var(--sub);font-size:13px;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.chip.on{background:var(--navy);color:#fff}
+main{padding:6px 16px calc(env(safe-area-inset-bottom) + 84px)}
+.card{background:var(--card);border-radius:18px;padding:16px;margin:10px 0;box-shadow:0 1px 3px rgba(16,24,40,.05)}
+.hero .lbl{font-size:12px;color:var(--sub);font-weight:600}
+.hero .big{font-size:34px;font-weight:800;margin:4px 0 2px;letter-spacing:-.01em}
+.hero .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px}
+.badge.up{background:#e6f6ef;color:var(--up)} .badge.down{background:#fdecee;color:var(--down)} .badge.flat{background:#eef0f4;color:var(--sub)}
+.small{font-size:12px;color:var(--sub)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.tile{background:#fff;border-radius:16px;padding:12px 10px;box-shadow:0 1px 3px rgba(16,24,40,.05)}
+.tile .lbl{font-size:11px;color:var(--sub);font-weight:600}
+.tile .v{font-size:18px;font-weight:800;margin-top:4px}
+.tile .s{font-size:10.5px;color:var(--mute);margin-top:2px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 4px}
+.sec h2{font-size:15px;margin:0;font-weight:800}
+.seg{display:inline-flex;background:#e9ecf2;border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--sub)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.room{display:flex;gap:12px;align-items:center}
+.room .body{flex:1;min-width:0}
+.ring{flex:0 0 auto;width:54px;height:54px;position:relative}
+.ring svg{width:54px;height:54px;transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ring .t b{font-size:13px;font-weight:800}
+.ring .t small{font-size:8.5px;color:var(--mute);margin-top:2px;font-weight:700}
+.occlg{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--sub);margin:2px 4px 0}
+.room .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.room .nm{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room .amt{font-weight:800;font-size:17px;white-space:nowrap}
+.room .meta{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--sub)}
+.bar{height:6px;border-radius:99px;background:#eef0f4;overflow:hidden;margin-top:8px;display:flex}
+.bar i{display:block;height:100%}
+.occ i{background:linear-gradient(90deg,#5b7cfa,#4263eb)}
+.split{height:4px;margin-top:6px}
+.list{background:#fff;border-radius:18px;box-shadow:0 1px 3px rgba(16,24,40,.05);overflow:hidden;margin:10px 0}
+.list .it{padding:13px 16px;border-top:1px solid var(--line)}
+.list .it:first-child{border-top:0}
+.chart{width:100%;height:150px;display:block}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--sub);margin-top:6px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
+.site{font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 6px;color:#fff;margin-right:6px;vertical-align:1px}
+.site.air{background:var(--air)} .site.bkg{background:var(--bkg)} .site.oth{background:var(--mute)}
+.bk .l1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bk .rm{font-weight:700;font-size:14.5px}
+.bk .l2{font-size:12px;color:var(--sub);margin-top:4px;display:flex;justify-content:space-between}
+.day{font-size:12px;font-weight:800;color:var(--sub);margin:16px 4px 0}
+.day b{color:var(--ink)}
+.today3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.empty{color:var(--mute);font-size:13px;padding:14px 16px}
+.dept .top{display:flex;justify-content:space-between;gap:8px}
+.dept .nm{font-size:13.5px;font-weight:700}
+.dept .v{font-weight:800}
+.neg{color:var(--down)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);display:flex;padding:6px 8px calc(env(safe-area-inset-bottom) + 6px)}
+nav button{flex:1;border:0;background:transparent;padding:6px 0;color:var(--mute);font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--navy)}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:var(--sub);gap:12px;font-size:13px}
+.spin{width:28px;height:28px;border:3px solid #dfe3ea;border-top-color:var(--navy);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{font-size:11px;color:var(--mute);margin:10px 4px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div><h1 id="ttl">ホーム</h1><div class="upd" id="upd">読み込み中…</div></div>
+    <button class="btn-ref" id="ref">↻ 更新</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+<main id="main"><div class="loading"><div class="spin"></div>データを読み込んでいます</div></main>
+<nav>
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ホーム</button>
+  <button data-tab="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>予約</button>
+  <button data-tab="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>損益</button>
+</nav>
+<script>
+var D = null, tab = 'home', month = '', sortBy = 'order', plKey = 'sales', plMonth = '';
+var $ = function (id) { return document.getElementById(id); };
+function yen(n) { return '¥' + Math.round(n || 0).toLocaleString('ja-JP'); }
+function man(n) { var a = Math.abs(n); return (n < 0 ? '-' : '') + (a >= 10000 ? (a / 10000).toFixed(a >= 1000000 ? 0 : 1) + '万' : Math.round(a).toLocaleString('ja-JP')); }
+function pct(x) { return (x * 100).toFixed(1) + '%'; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function days(m) { var p = m.split('-'); return new Date(+p[0], +p[1], 0).getDate(); }
+function prevM(m) { var p = m.split('-').map(Number); var d = new Date(p[0], p[1] - 2, 1); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); }
+function mLabel(m) { var p = m.split('-'); return +p[1] + '月'; }
+function md(d) { var p = d.split('-'); var w = '日月火水木金土'[new Date(+p[0], +p[1] - 1, +p[2]).getDay()]; return +p[1] + '/' + +p[2] + '(' + w + ')'; }
+function siteTag(s) { var l = s.toLowerCase(); return l.indexOf('airbnb') >= 0 ? '<span class="site air">Airbnb</span>' : l.indexOf('booking') >= 0 ? '<span class="site bkg">Booking</span>' : '<span class="site oth">' + esc(s || '手動') + '</span>'; }
+function occColor(p) { return p >= 0.8 ? '#0f9d6b' : p >= 0.6 ? '#4263eb' : p >= 0.4 ? '#f59f00' : '#e0464f'; }
+function ring(p, size) {
+  var r = 22, c = 2 * Math.PI * r, v = Math.max(0, Math.min(p, 1)), col = occColor(p);
+  return '<div class="ring"' + (size ? ' style="width:' + size + 'px;height:' + size + 'px"' : '') + '><svg viewBox="0 0 54 54"' + (size ? ' style="width:' + size + 'px;height:' + size + 'px"' : '') + '><circle cx="27" cy="27" r="' + r + '" fill="none" stroke="#eef0f4" stroke-width="6"/>' +
+    '<circle cx="27" cy="27" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + (c * v) + ' ' + c + '"/></svg>' +
+    '<div class="t"><b style="color:' + col + '">' + Math.round(p * 100) + '%</b><small>稼働率</small></div></div>';
+}
+function badge(cur, prev) {
+  if (!prev) return '<span class="badge flat">前月なし</span>';
+  var r = cur / prev - 1, c = r > 0.005 ? 'up' : r < -0.005 ? 'down' : 'flat';
+  return '<span class="badge ' + c + '">' + (r > 0 ? '+' : '') + (r * 100).toFixed(1) + '%</span>';
+}
+
+var API = 'https://script.google.com/macros/s/AKfycbxYdyky79oop-mM8T8gk2QiRBm0jgqohVDr77XzKpQJyoBNetByZJKHkpMRvOlXdSYFjw/exec';
+var KEY = '';
+(function () {
+  var m = (location.hash + '&' + location.search).match(/[#?&]k=([A-Za-z0-9]+)/);
+  try {
+    if (m) { KEY = m[1]; localStorage.setItem('minpaku_key', KEY); }
+    else KEY = localStorage.getItem('minpaku_key') || '';
+  } catch (e) { if (m) KEY = m[1]; }
+})();
+function askKey(msg) {
+  $('upd').textContent = '';
+  $('main').innerHTML = '<div class="card"><div style="font-weight:800;margin-bottom:8px">合言葉を入れてください</div>' +
+    '<div class="small" style="margin-bottom:10px">' + (msg || '管理者から届いたURLを開くと自動で入ります。') + '</div>' +
+    '<input id="kin" style="width:100%;font-size:16px;padding:10px;border:1px solid #dfe3ea;border-radius:10px" autocomplete="off">' +
+    '<button id="kok" class="btn-ref" style="margin-top:10px;background:var(--navy);color:#fff;padding:9px 18px">開く</button></div>';
+  $('kok').onclick = function () {
+    KEY = $('kin').value.trim();
+    try { localStorage.setItem('minpaku_key', KEY); } catch (e) {}
+    load(false);
+  };
+}
+function load(force) {
+  if (!KEY) { askKey(); return; }
+  $('upd').textContent = '読み込み中…';
+  fetch(API + '?api=1&k=' + encodeURIComponent(KEY) + (force ? '&force=1' : '') + '&t=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.error === 'key') { try { localStorage.removeItem('minpaku_key'); } catch (e) {} KEY = ''; askKey('合言葉が違います（変更された可能性があります）。'); return; }
+      D = d;
+      var cur = D.today.slice(0, 7);
+      if (!month) month = D.months.indexOf(cur) >= 0 ? cur : D.months[D.months.length - 1];
+      if (!plMonth) plMonth = D.plMonth || cur;
+      $('upd').textContent = '最終取得 ' + D.updated;
+      render();
+    })
+    .catch(function (e) {
+      $('upd').textContent = '';
+      $('main').innerHTML = '<div class="card">読み込めませんでした。電波の良い所で「↻ 更新」を押してください。<div class="small" style="margin-top:6px">' + esc(e.message || e) + '</div></div>';
+    });
+}
+
+function totals(m) {
+  var a = D.agg[m] || {}, t = { net: 0, gross: 0, fee: 0, nights: 0, block: 0, air: 0, bkg: 0, avail: 0 };
+  D.rooms.forEach(function (r) {
+    var x = a[r]; var dd = days(m);
+    if (x) { ['net', 'gross', 'fee', 'nights', 'block', 'air', 'bkg'].forEach(function (k) { t[k] += x[k]; }); }
+    t.avail += dd - (x ? x.block : 0);
+  });
+  return t;
+}
+
+function chips(list, sel, label, on) {
+  var h = list.map(function (m) { return '<button class="chip' + (m === sel ? ' on' : '') + '" data-m="' + m + '">' + label(m) + '</button>'; }).join('');
+  $('chips').innerHTML = h;
+  $('chips').style.display = list.length ? '' : 'none';
+  Array.prototype.forEach.call($('chips').children, function (b) { b.onclick = function () { on(b.getAttribute('data-m')); }; });
+  var s = $('chips').querySelector('.on'); if (s) s.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+function ymLabel(m) { var p = m.split('-'); return (p[0].slice(2)) + '年' + (+p[1]) + '月'; }
+
+function barChart(vals, labels, selIdx, onTap) {
+  var W = 340, H = 150, pad = 18, n = vals.length, max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0]));
+  var span = max - min || 1, bw = (W - 8) / n, zero = 8 + (H - pad - 8) * (max / span);
+  var s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">';
+  s += '<line x1="0" x2="' + W + '" y1="' + zero + '" y2="' + zero + '" stroke="#e3e6ec"/>';
+  vals.forEach(function (v, i) {
+    var h = Math.abs(v) / span * (H - pad - 8), x = 4 + i * bw + bw * 0.18, w = bw * 0.64;
+    var y = v >= 0 ? zero - h : zero;
+    var col = i === selIdx ? '#1f2a44' : v < 0 ? '#f3a3a8' : '#c7d2fe';
+    s += '<rect data-i="' + i + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + Math.max(h, 1) + '" rx="3" fill="' + col + '"/>';
+    s += '<rect data-i="' + i + '" x="' + (4 + i * bw) + '" y="0" width="' + bw + '" height="' + H + '" fill="transparent"/>';
+    s += '<text x="' + (4 + i * bw + bw / 2) + '" y="' + (H - 4) + '" font-size="9" text-anchor="middle" fill="' + (i === selIdx ? '#1f2a44' : '#9aa3b2') + '" font-weight="' + (i === selIdx ? 800 : 500) + '">' + labels[i] + '</text>';
+  });
+  s += '</svg>';
+  return s;
+}
+function bindChart(el, onTap) {
+  Array.prototype.forEach.call(el.querySelectorAll('rect[data-i]'), function (r) { r.onclick = function () { onTap(+r.getAttribute('data-i')); }; });
+}
+
+/* ---------- ホーム ---------- */
+function renderHome() {
+  $('ttl').textContent = 'ホーム';
+  chips(D.months, month, ymLabel, function (m) { month = m; render(); });
+  var t = totals(month), pm = prevM(month), tp = totals(pm);
+  var occ = t.avail ? t.nights / t.avail : 0, adr = t.nights ? t.net / t.nights : 0;
+  var last = D.months.slice(-12), lv = last.map(function (m) { return totals(m).net; });
+  var h = '';
+  h += '<div class="card hero"><div class="lbl">' + ymLabel(month) + 'の手取り（OTA手数料控除後）</div>';
+  h += '<div class="big num">' + yen(t.net) + '</div>';
+  h += '<div class="row">' + badge(t.net, tp.net) + '<span class="small">前月 ' + yen(tp.net) + '</span></div>';
+  h += '<div class="small" style="margin-top:8px">販売 ' + yen(t.gross) + '　OTA手数料 ' + yen(t.fee) + '</div>';
+  var sp = t.air + t.bkg || 1;
+  h += '<div class="bar split"><i style="width:' + (t.air / sp * 100) + '%;background:var(--air)"></i><i style="width:' + (t.bkg / sp * 100) + '%;background:var(--bkg)"></i></div>';
+  h += '<div class="legend"><span><span class="dot" style="background:var(--air)"></span>Airbnb ' + man(t.air) + '</span><span><span class="dot" style="background:var(--bkg)"></span>Booking ' + man(t.bkg) + '</span></div></div>';
+  h += '<div class="tiles">';
+  h += '<div class="tile"><div class="lbl">稼働率</div><div class="v num" style="color:' + occColor(occ) + '">' + pct(occ) + '</div><div class="s">前月 ' + pct(tp.avail ? tp.nights / tp.avail : 0) + '</div></div>';
+  h += '<div class="tile"><div class="lbl">1泊あたり</div><div class="v num">' + yen(adr) + '</div><div class="s">清掃費込みの手取り</div></div>';
+  h += '<div class="tile"><div class="lbl">販売泊数</div><div class="v num">' + t.nights + '泊</div><div class="s">ブロック ' + t.block + '日</div></div>';
+  h += '</div>';
+  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別の手取り</h2><span class="small">棒をタップで月を切替</span></div><div id="hc">' + barChart(lv, last.map(mLabel), last.indexOf(month)) + '</div></div>';
+  h += '<div class="sec"><h2>部屋別</h2><div class="seg"><button data-s="order" class="' + (sortBy === 'order' ? 'on' : '') + '">いつもの順</button><button data-s="net" class="' + (sortBy === 'net' ? 'on' : '') + '">手取り順</button></div></div>';
+  h += '<div class="occlg"><span>稼働率の色：</span><span><span class="dot" style="background:#0f9d6b"></span>80%以上</span><span><span class="dot" style="background:#4263eb"></span>60〜79%</span><span><span class="dot" style="background:#f59f00"></span>40〜59%</span><span><span class="dot" style="background:#e0464f"></span>40%未満</span></div>';
+  var a = D.agg[month] || {}, b = D.agg[pm] || {}, dd = days(month);
+  var list = D.rooms.map(function (r, i) { var x = a[r] || { net: 0, nights: 0, block: 0, air: 0, bkg: 0 }; return { r: r, i: i, x: x, p: (b[r] || {}).net || 0 }; });
+  if (sortBy === 'net') list.sort(function (p, q) { return q.x.net - p.x.net; });
+  h += '<div class="list">';
+  list.forEach(function (o) {
+    var av = dd - o.x.block, oc = av ? o.x.nights / av : 0, ad = o.x.nights ? o.x.net / o.x.nights : 0, s2 = o.x.air + o.x.bkg || 1;
+    h += '<div class="it room">' + ring(oc) + '<div class="body"><div class="top"><div class="nm">' + esc(o.r) + '</div><div class="amt num">' + yen(o.x.net) + '</div></div>';
+    h += '<div class="meta"><span>' + o.x.nights + '泊' + (o.x.block ? '（ブロック' + o.x.block + '日）' : '') + '</span><span>1泊 ' + yen(ad) + '</span><span>' + badge(o.x.net, o.p) + '</span></div>';
+    h += '<div class="bar split"><i style="width:' + (o.x.air / s2 * 100) + '%;background:var(--air)"></i><i style="width:' + (o.x.bkg / s2 * 100) + '%;background:var(--bkg)"></i></div></div></div>';
+  });
+  h += '</div><div class="note">稼働率＝販売泊数÷（月の日数−ブロック日数）。月の途中は「確定＋予約済み」の数字です。円グラフは稼働率（色は上の目安）。細い線は手取りのうち Airbnb（赤）と Booking（青）の割合。</div>';
+  $('main').innerHTML = h;
+  bindChart($('hc'), function (i) { month = last[i]; render(); window.scrollTo(0, 0); });
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button[data-s]'), function (bt) { bt.onclick = function () { sortBy = bt.getAttribute('data-s'); render(); }; });
+}
+
+/* ---------- 予約 ---------- */
+function bkCard(b, showDates) {
+  return '<div class="it bk"><div class="l1"><div class="rm">' + siteTag(b.site) + esc(b.room) + '</div><div class="num" style="font-weight:800">' + yen(b.net) + '</div></div>' +
+    '<div class="l2"><span>' + md(b.ci) + ' → ' + md(b.co) + '・' + b.nights + '泊' + (b.guests ? '・' + b.guests + '名' : '') + '</span><span>' + esc(b.country || '') + '</span></div></div>';
+}
+function renderBook() {
+  $('ttl').textContent = '予約';
+  $('chips').innerHTML = ''; $('chips').style.display = 'none';
+  var td = D.today, tm = addD(td, 1);
+  var ins = D.stays.filter(function (b) { return b.ci === td; }), outs = D.stays.filter(function (b) { return b.co === td; }),
+      stay = D.stays.filter(function (b) { return b.ci < td && b.co > td; });
+  var h = '<div class="sec" style="margin-top:6px"><h2>今日 ' + md(td) + '</h2></div>';
+  h += '<div class="today3"><div class="tile"><div class="lbl">チェックイン</div><div class="v">' + ins.length + '件</div></div>' +
+       '<div class="tile"><div class="lbl">チェックアウト</div><div class="v">' + outs.length + '件</div></div>' +
+       '<div class="tile"><div class="lbl">滞在中</div><div class="v">' + stay.length + '件</div></div></div>';
+  h += '<div class="day"><b>今日のチェックイン</b></div><div class="list">' + (ins.length ? ins.map(bkCard).join('') : '<div class="empty">ありません</div>') + '</div>';
+  h += '<div class="day"><b>今日のチェックアウト</b>（清掃）</div><div class="list">' + (outs.length ? outs.map(bkCard).join('') : '<div class="empty">ありません</div>') + '</div>';
+  var tmIns = D.stays.filter(function (b) { return b.ci === tm; }), tmOuts = D.stays.filter(function (b) { return b.co === tm; });
+  h += '<div class="day"><b>明日 ' + md(tm) + '</b>　イン ' + tmIns.length + '・アウト ' + tmOuts.length + '</div><div class="list">' + (tmIns.length ? tmIns.map(bkCard).join('') : '<div class="empty">チェックインはありません</div>') + '</div>';
+  var later = D.stays.filter(function (b) { return b.ci > tm; }), cur = '';
+  h += '<div class="sec"><h2>この先30日のチェックイン</h2><span class="small">' + later.length + '件</span></div>';
+  later.forEach(function (b) {
+    if (b.ci !== cur) { if (cur) h += '</div>'; cur = b.ci; h += '<div class="day">' + md(b.ci) + '</div><div class="list">'; }
+    h += bkCard(b);
+  });
+  if (cur) h += '</div>';
+  h += '<div class="sec"><h2>新着予約（直近7日）</h2><span class="small">' + D.recent.length + '件</span></div><div class="list">';
+  h += D.recent.length ? D.recent.map(function (b) { return bkCard(b).replace('<div class="l2">', '<div class="l2" style="margin-bottom:2px"><span>予約日 ' + md(b.booked) + '</span><span></span></div><div class="l2">'); }).join('') : '<div class="empty">ありません</div>';
+  h += '</div><div class="note">確認済みの予約だけを表示（キャンセル・ブロックは除く）。金額は手取り（OTA手数料控除後）。</div>';
+  $('main').innerHTML = h;
+}
+function addD(d, n) { var p = d.split('-').map(Number); var x = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); return x.toISOString().slice(0, 10); }
+
+/* ---------- 損益 ---------- */
+function renderPL() {
+  $('ttl').textContent = '損益';
+  var tr = D.trends[plKey];
+  if (!tr) { $('main').innerHTML = '<div class="card">損益_部門別の年度推移が見つかりません</div>'; return; }
+  if (tr.months.indexOf(plMonth) < 0) plMonth = tr.months.indexOf(D.today.slice(0, 7)) >= 0 ? D.today.slice(0, 7) : tr.months[0];
+  chips(tr.months, plMonth, ymLabel, function (m) { plMonth = m; render(); });
+  var idx = tr.months.indexOf(plMonth), names = { sales: '売上（手取り）', op: '営業利益', ebitda: 'EBITDA' };
+  var h = '<div style="margin-top:6px" class="seg">' + ['sales', 'op', 'ebitda'].map(function (k) { return '<button data-k="' + k + '" class="' + (k === plKey ? 'on' : '') + '">' + { sales: '売上', op: '営業利益', ebitda: 'EBITDA' }[k] + '</button>'; }).join('') + '</div>';
+  var tot = tr.total[idx] || 0, ytd = tr.total.slice(0, idx + 1).reduce(function (s, v) { return s + (v || 0); }, 0);
+  h += '<div class="card hero"><div class="lbl">' + ymLabel(plMonth) + 'の' + names[plKey] + '（全部門）</div><div class="big num' + (tot < 0 ? ' neg' : '') + '">' + yen(tot) + '</div>';
+  h += '<div class="small">年度累計（' + mLabel(tr.months[0]) + '〜' + mLabel(plMonth) + '） ' + yen(ytd) + '</div></div>';
+  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別</h2><span class="small">棒をタップで月を切替</span></div><div id="pc">' + barChart(tr.total.map(function (v) { return v || 0; }), tr.months.map(mLabel), idx) + '</div></div>';
+  var rows = tr.rows.map(function (r) { return { n: r.name, v: r.vals[idx] || 0 }; }).sort(function (a, b) { return b.v - a.v; });
+  var mx = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); }).concat([1]));
+  h += '<div class="sec"><h2>部門別</h2></div><div class="list">';
+  rows.forEach(function (r) {
+    h += '<div class="it dept"><div class="top"><div class="nm">' + esc(r.n) + '</div><div class="v num' + (r.v < 0 ? ' neg' : '') + '">' + yen(r.v) + '</div></div>' +
+      '<div class="bar"><i style="width:' + (Math.abs(r.v) / mx * 100) + '%;background:' + (r.v < 0 ? '#f3a3a8' : '#5b7cfa') + '"></i></div></div>';
+  });
+  h += '</div><div class="note">経費は経理の部門別損益計算書。経理データがまだ無い月は経費0のため、営業利益＝売上になります。</div>';
+  $('main').innerHTML = h;
+  bindChart($('pc'), function (i) { plMonth = tr.months[i]; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button[data-k]'), function (bt) { bt.onclick = function () { plKey = bt.getAttribute('data-k'); render(); }; });
+}
+
+function render() {
+  if (!D) return;
+  if (tab === 'home') renderHome(); else if (tab === 'book') renderBook(); else renderPL();
+}
+Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) {
+  b.onclick = function () {
+    tab = b.getAttribute('data-tab');
+    Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (x) { x.classList.toggle('on', x === b); });
+    render(); window.scrollTo(0, 0);
+  };
+});
+$('ref').onclick = function () { load(true); };
+load(false);
+</script>
+</body>
+</html>
