@@ -425,6 +425,19 @@ table.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;fon
 .pt.pl2 tr.op td{background:#eaefff;font-weight:800;color:#1f2a44}
 .pt.pl2 tr.op td.gt{background:#dfe6ff}
 .zz{color:#c3c8d2!important;font-weight:400!important}
+
+/* 月次（数字の表） */
+.pt.mnum td{min-width:84px;padding:10px 10px}
+.pt.mnum td.mname{min-width:170px}
+.pt.mnum th.mh{cursor:pointer}
+.pt.mnum th.mh:hover{background:#2c3a5c}
+.pt.mnum th.mh.on{background:#4263eb}
+.pt.mnum td.on{background:#eef2ff;font-weight:800;color:#1f2a44}
+.pt.mnum tbody tr:hover td.on{background:#e3e9ff}
+.pt.mnum td.fut{color:#9aa3b2}
+.pt.mnum td.mtot,.pt.mnum th.mtot{font-weight:800;border-left:1px solid #e5e8ee}
+.pt.mnum th.mtot{border-left:0;background:#2c3a5c}
+.pt.mnum tr.tot td.on{background:#dfe6ff}
 </style>
 </head>
 <body>
@@ -623,7 +636,7 @@ function pcMonthly() {
   if (!PC.month || ms.indexOf(PC.month) < 0) PC.month = ms.indexOf(cur) >= 0 ? cur : ms[ms.length - 1];
   var sel = PC.month;
   var names = { net: '手取り', nights: '販売泊数', occ: '稼働率', adr: '1泊あたり手取り' };
-  var h = phead('月次 部屋別', '部屋ごとの月別の推移。濃い棒＝選択中の月（' + ymLabel(sel) + '・ダッシュボードと共通）、薄い棒＝これからの月（予約済み分）。月の名前をクリックで選択を変更',
+  var h = phead('月次 部屋別', '部屋ごとの月別の推移。青い列＝選択中の月（' + ymLabel(sel) + '・ダッシュボードと共通）、灰色の文字＝これからの月（予約済み分）。月の名前をクリックで選択を変更',
     seg('pmseg', [['net', '手取り'], ['nights', '販売泊数'], ['occ', '稼働率'], ['adr', '1泊あたり']], k));
   var val = function (m, r) { var x = (D.agg[m] || {})[r]; if (!x) return null; return roomStat(m, r)[k]; };
   var totM = function (m) { var t = totals(m); return k === 'net' ? t.net : k === 'nights' ? t.nights : k === 'occ' ? (t.avail ? t.nights / t.avail : 0) : (t.nights ? t.net / t.nights : 0); };
@@ -632,31 +645,29 @@ function pcMonthly() {
     ms.forEach(function (m) { var x = (D.agg[m] || {})[r]; if (!x) return; s.net += x.net; s.nights += x.nights; s.avail += days(m) - x.block; });
     return k === 'net' ? s.net : k === 'nights' ? s.nights : k === 'occ' ? (s.avail ? s.nights / s.avail : 0) : (s.nights ? s.net / s.nights : 0);
   };
-  var lab = function (v) { return k === 'occ' ? Math.round(v * 100) + '%' : k === 'nights' ? String(v) : man(v); };
-  var full = function (v) { return k === 'occ' ? pct(v) : k === 'nights' ? v + '泊' : yen(v); };
+  var fv = function (v) { return k === 'occ' ? (v * 100).toFixed(1) + '%' : k === 'nights' ? String(v) : fmt(v); };
   var row = function (name, vals, total, cls) {
-    var mx = k === 'occ' ? 1 : Math.max.apply(null, vals.map(function (v) { return v || 0; }).concat([1]));
     var s = '<tr class="' + (cls || '') + '"><td class="mname">' + esc(name) + '</td>';
     vals.forEach(function (v, i) {
       var m = ms[i], c = (m === sel ? 'on' : m > cur ? 'fut' : '');
-      if (v === null) { s += '<td class="' + c + '"><div class="mb"></div><span class="mv mnone">—</span></td>'; return; }
-      var hh = v > 0 ? Math.max(4, Math.round(Math.min(1, v / mx) * 100)) : 0;
-      s += '<td class="' + c + '" title="' + esc(name + '　' + ymLabel(m) + '　' + full(v)) + '"><div class="mb"><i style="height:' + hh + '%"></i></div><span class="mv">' + (v ? lab(v) : '0') + '</span></td>';
+      if (v === null) { s += '<td class="' + c + '"><span class="zz">—</span></td>'; return; }
+      s += '<td class="' + c + '">' + (v ? fv(v) : '<span class="zz">0</span>') + '</td>';
     });
-    return s + '<td class="mtot">' + (k === 'occ' ? pct(total) : k === 'nights' ? total + '泊' : yen(total)) + '</td></tr>';
+    return s + '<td class="mtot">' + fv(total) + '</td></tr>';
   };
-  var t = '<div class="pscroll"><table class="pt mrib"><thead><tr><th class="tl">部屋</th>' + ms.map(function (m) {
-    return '<th class="mh' + (m === sel ? ' on' : '') + '" data-m="' + m + '">' + ymLabel(m) + '</th>';
-  }).join('') + '<th>' + (k === 'occ' || k === 'adr' ? '全期間' : '合計') + '</th></tr></thead><tbody>';
+  var unit = k === 'net' || k === 'adr' ? '（円）' : k === 'nights' ? '（泊）' : '';
+  var t = '<div class="pscroll"><table class="pt mnum"><thead><tr><th class="tl">部屋</th>' + ms.map(function (m) {
+    return '<th class="mh' + (m === sel ? ' on' : '') + (m > cur ? ' fut' : '') + '" data-m="' + m + '">' + ymLabel(m) + '</th>';
+  }).join('') + '<th class="mtot">' + (k === 'occ' || k === 'adr' ? '全期間' : '合計') + '</th></tr></thead><tbody>';
   D.rooms.forEach(function (r) { t += row(r, ms.map(function (m) { return val(m, r); }), totR(r)); });
   var all = 0, an = 0, aa = 0; ms.forEach(function (m) { var tt = totals(m); all += tt.net; an += tt.nights; aa += tt.avail; });
   var grand = k === 'net' ? all : k === 'nights' ? an : k === 'occ' ? (aa ? an / aa : 0) : (an ? all / an : 0);
-  t += row('合計', ms.map(totM), grand, 'mtotal') + '</tbody></table></div>';
-  h += card(names[k], k === 'occ' ? '棒の高さ＝稼働率（0〜100%）' : '棒の高さは部屋ごとの一番大きい月を基準（部屋の中での増減が見やすいように）。数字にマウスを乗せると正確な値', t);
-  h += '<div class="pnote">稼働率＝販売泊数÷（月の日数−ブロック日数）。「—」はその月のデータがない部屋。1泊あたり手取りは清掃費の手取りを含みます。金額は「万」単位で丸めて表示（右端の合計は円）。</div>';
+  t += row('合計', ms.map(totM), grand, 'tot') + '</tbody></table></div>';
+  h += card(names[k] + unit, '', t);
+  h += '<div class="pnote">稼働率＝販売泊数÷（月の日数−ブロック日数）。「—」はその月のデータがない部屋。1泊あたり手取りは清掃費の手取りを含みます。</div>';
   $('pmain').innerHTML = h;
   bindSeg('pmseg', function (v) { PC.mmetric = v; renderPC(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.mrib th.mh'), function (th) { th.onclick = function () { PC.month = th.getAttribute('data-m'); renderPC(); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('.mnum th.mh'), function (th) { th.onclick = function () { PC.month = th.getAttribute('data-m'); renderPC(); }; });
 }
 
 /* ---------- 予約カレンダー ---------- */
@@ -741,9 +752,9 @@ function pcPL() {
     pk('営業利益', yen(ot), '年度累計 ' + yen(ytd(O)), ot < 0 ? 'neg' : '') + pk('営業利益率', st ? pct(ot / st) : '—', '') + pk('EBITDA', yen(et), '営業利益＋減価償却費', et < 0 ? 'neg' : '') + '</div>';
   h += card('月別の売上と営業利益（年度）', '<span class="lg"><i style="background:#4263eb"></i>売上</span><span class="lg"><i style="background:#1f2a44"></i>営業利益</span><span class="lg"><i style="background:#e8590c"></i>赤字</span>　月をクリックで切り替え', '<div id="plc"></div>');
   // 損益の表：部門を横、項目を縦（スプレッドシートと同じ形）
-  var g = PV.pl, hr = findRow(g, '項目'), pmon = cell(g, 1, 1), tb = '';
+  var pmon = cell(PV.pl, 1, 1), g = PC.plMonth === pmon ? PV.pl : ((PV.plm && PV.plm[PC.plMonth]) || PV.pl), hr = findRow(g, '項目'), tb = '';
   var z = function (v) { var n = cnum(v); return n === null ? '' : n === 0 ? '<span class="zz">0</span>' : n < 0 ? '<span class="neg">' + esc(v) + '</span>' : esc(v); };
-  if (hr >= 0 && PC.plMonth === pmon) {
+  if (hr >= 0 && cell(g, 1, 1) === PC.plMonth) {
     var heads = (g[hr] || []).slice(1), body = '';
     for (var r = hr + 1; r < g.length; r++) {
       var row = g[r] || [], name = cell(g, r, 0);
