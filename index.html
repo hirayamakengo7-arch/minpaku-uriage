@@ -94,6 +94,30 @@ nav button.on{color:var(--navy)}
 .spin{width:28px;height:28px;border:3px solid #dfe3ea;border-top-color:var(--navy);border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .note{font-size:11px;color:var(--mute);margin:10px 4px;line-height:1.6}
+/* シート表示（スプレッドシートの見た目をそのまま） */
+.shbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 8px;flex-wrap:wrap}
+.shzoom{display:inline-flex;background:#e9ecf2;border-radius:10px;padding:3px;gap:2px}
+.shzoom button{border:0;background:transparent;padding:5px 10px;border-radius:8px;font-size:13px;font-weight:800;color:var(--sub);cursor:pointer}
+.shzoom button:hover{background:#fff}
+.shwrap{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(16,24,40,.06);overflow:auto;max-height:calc(100dvh - 215px);-webkit-overflow-scrolling:touch;border:1px solid var(--line)}
+table.sg{border-collapse:collapse;table-layout:fixed;font-family:"Noto Sans JP",Arial,sans-serif;color:#000;background:#fff}
+table.sg td{padding:0 3px;overflow:hidden;white-space:pre;vertical-align:bottom;line-height:1.25;font-size:13.3px;position:relative}
+table.sg td.ov{overflow:visible}
+table.sg td.wr{white-space:pre-wrap;word-break:break-word}
+table.sg.grid td{border:1px solid #e2e3e3}
+table.sg td.st{position:sticky;background:#fff;z-index:2}
+table.sg td.st.stc{z-index:3}
+table.sg td.nt{cursor:pointer}
+table.sg td.nt::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 6px 6px 0;border-color:transparent #f59f00 transparent transparent;opacity:.9}
+.shload{padding:40px 0;text-align:center;color:var(--sub);font-size:13px}
+nav .subnav{display:none}
+@media (min-width:960px){
+  .shwrap{max-height:calc(100vh - 190px)}
+  nav .subnav{display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 10px;padding-left:12px;border-left:2px solid #eef0f4}
+  nav .subnav a{font-size:13px;color:var(--sub);padding:6px 10px;border-radius:8px;cursor:pointer;text-decoration:none;font-weight:600}
+  nav .subnav a:hover{background:#f3f4f8}
+  nav .subnav a.on{color:var(--accent);background:#eef1ff}
+}
 /* 予約カレンダー */
 .calbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 2px 8px;flex-wrap:wrap}
 .calleg{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--sub)}
@@ -196,9 +220,10 @@ nav button.on{color:var(--navy)}
 <nav>
   <div class="brand"><img src="icon-192.png" alt="">民泊売上</div>
   <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ホーム</button>
-  <button data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M7 13h4M13 13h4M7 17h10"/></svg>カレンダー</button>
   <button data-tab="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>予約</button>
   <button data-tab="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>損益</button>
+  <button data-tab="sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>シート</button>
+  <div class="subnav" id="subnav"></div>
   <div class="navfoot">データは売上管理シートから自動で読み込みます。</div>
 </nav>
 <script>
@@ -260,6 +285,7 @@ function load(force) {
       if (!plMonth) plMonth = D.plMonth || cur;
       $('upd').textContent = '最終取得 ' + D.updated;
       render();
+      if (!window._pf) { window._pf = 1; setTimeout(prefetchSheets, 1500); }
     })
     .catch(function (e) {
       $('upd').textContent = '';
@@ -391,6 +417,143 @@ function renderBook() {
 function addD(d, n) { var p = d.split('-').map(Number); var x = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); return x.toISOString().slice(0, 10); }
 
 
+
+/* ---------- シート（スプレッドシートと同じ見た目） ---------- */
+var SHEETS = ['予約カレンダー', 'ダッシュボード', '月次_部屋別', '損益_部門別', '料金と予約の流れ', 'レビューと稼働', 'レビュー_部屋別', 'レビュー_文面'];
+var sheetName = SHEETS[0], SH = {}, shLoading = {}, shZoom = null;
+function fetchSheet(name, force) {
+  if (shLoading[name] && !force) return shLoading[name];
+  var url = API + '?api=1&k=' + encodeURIComponent(KEY) + '&sheet=' + encodeURIComponent(name) + (force ? '&force=1' : '') + '&t=' + Date.now();
+  var tryOnce = function () { return fetch(url).then(function (r) { return r.json(); }); };
+  shLoading[name] = tryOnce().then(function (d) { return d && d.name === name ? d : tryOnce(); }).then(function (d) {
+    if (!d || d.name !== name) throw new Error('シートを読み込めませんでした');
+    SH[name] = d; return d;
+  }).catch(function (e) { delete shLoading[name]; throw e; });
+  return shLoading[name];
+}
+function prefetchSheets() {
+  var i = 0;
+  var next = function () { if (i >= SHEETS.length) return; var n = SHEETS[i++]; if (SH[n]) return next(); fetchSheet(n).then(next, next); };
+  next();
+}
+function renderSubnav() {
+  var el = $('subnav'); if (!el) return;
+  el.innerHTML = SHEETS.map(function (n) { return '<a data-s="' + esc(n) + '" class="' + (tab === 'sheet' && n === sheetName ? 'on' : '') + '">' + esc(n) + '</a>'; }).join('');
+  Array.prototype.forEach.call(el.children, function (a) {
+    a.onclick = function () { sheetName = a.getAttribute('data-s'); tab = 'sheet'; setNavOn(); render(); window.scrollTo(0, 0); };
+  });
+}
+function sgCss(S) {
+  return S.styles.map(function (s, i) {
+    var css = '';
+    if (s[0]) css += 'background:' + s[0] + ';';
+    if (s[1] && s[1] !== '#000000') css += 'color:' + s[1] + ';';
+    if (s[2]) css += 'font-weight:700;';
+    if (s[3] && s[3] !== 10) css += 'font-size:' + (s[3] * 1.333).toFixed(1) + 'px;';
+    if (s[4]) css += 'text-align:' + { L: 'left', C: 'center', R: 'right' }[s[4]] + ';';
+    if (s[5]) css += 'vertical-align:' + { T: 'top', M: 'middle', B: 'bottom' }[s[5]] + ';';
+    if (s[7]) css += 'border-top:' + s[7] + ';';
+    if (s[8]) css += 'border-bottom:' + s[8] + ';';
+    if (s[9]) css += 'border-left:' + s[9] + ';';
+    if (s[10]) css += 'border-right:' + s[10] + ';';
+    if (s[11]) css += 'font-style:italic;';
+    if (s[12] || s[13]) css += 'text-decoration:' + (s[12] ? 'line-through ' : '') + (s[13] ? 'underline' : '') + ';';
+    return '.sg .s' + i + '{' + css + '}';
+  }).join('\n');
+}
+function sgRuns(text, runs) {
+  if (!runs || !runs.length) return esc(text);
+  var out = '';
+  runs.forEach(function (r, i) {
+    var end = i + 1 < runs.length ? runs[i + 1][0] : text.length, part = text.slice(r[0], end);
+    var st = (r[1] && r[1] !== '#000000' ? 'color:' + r[1] + ';' : '') + (r[2] ? 'font-size:' + (r[2] * 1.333).toFixed(1) + 'px;' : '') + (r[3] ? 'font-weight:700;' : '');
+    out += st ? '<span style="' + st + '">' + esc(part) + '</span>' : esc(part);
+  });
+  return out;
+}
+function sgHtml(S) {
+  var R = S.h.length, C = S.w.length, at = {}, skip = {}, span = {}, notes = [];
+  S.cells.forEach(function (c) { at[c[0] + ',' + c[1]] = c; });
+  S.merges.forEach(function (m) {
+    span[m[0] + ',' + m[2]] = [m[1] - m[0], m[3] - m[2]];
+    for (var r = m[0]; r < m[1]; r++) for (var c = m[2]; c < m[3]; c++) if (r !== m[0] || c !== m[2]) skip[r + ',' + c] = 1;
+  });
+  var top = [], left = [], t = 0, l = 0;
+  for (var r = 0; r < R; r++) { top.push(t); t += S.h[r]; }
+  for (var c = 0; c < C; c++) { left.push(l); l += S.w[c]; }
+  var h = '<style>' + sgCss(S) + '</style><table class="sg' + (S.grid ? ' grid' : '') + '" style="width:' + l + 'px"><colgroup>';
+  S.w.forEach(function (w) { h += '<col style="width:' + w + 'px">'; });
+  h += '</colgroup><tbody>';
+  for (r = 0; r < R; r++) {
+    if (!S.h[r]) continue;
+    h += '<tr style="height:' + S.h[r] + 'px">';
+    for (c = 0; c < C; c++) {
+      var k = r + ',' + c;
+      if (skip[k]) continue;
+      if (!S.w[c]) continue;
+      var cell = at[k], sp = span[k], cls = [], style = '';
+      var st = cell ? S.styles[cell[3]] : null;
+      if (cell) cls.push('s' + cell[3]);
+      var val = cell ? cell[2] : '';
+      if (st && st[6] === 'w') cls.push('wr');
+      else if (val && (!st || st[6] === 'o')) {
+        var nx = at[r + ',' + (c + (sp ? sp[1] : 1))];
+        if (!nx || !nx[2]) cls.push('ov');
+      }
+      if (st && !st[4] && /^[-¥$+]?[\d,.]+%?$|^¥[-\d,]+$/.test(val)) style += 'text-align:right;';
+      var stickT = r < S.fr, stickL = c < S.fc;
+      if (stickT || stickL) {
+        cls.push('st'); if (stickT && stickL) cls.push('stc');
+        if (stickT) style += 'top:' + top[r] + 'px;';
+        if (stickL) style += 'left:' + left[c] + 'px;';
+      }
+      var attr = '';
+      if (cell && cell[4]) { cls.push('nt'); attr = ' data-n="' + notes.length + '"'; notes.push(cell[4]); }
+      if (sp) attr += (sp[0] > 1 ? ' rowspan="' + sp[0] + '"' : '') + (sp[1] > 1 ? ' colspan="' + sp[1] + '"' : '');
+      var inner = val ? sgRuns(val, cell[5]) : '';
+      h += '<td' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + (style ? ' style="' + style + '"' : '') + attr + '>' + inner + '</td>';
+    }
+    h += '</tr>';
+  }
+  h += '</tbody></table>';
+  return { html: h, notes: notes };
+}
+function showNote(title, text) {
+  var bg = document.createElement('div'); bg.className = 'sheetbg';
+  bg.innerHTML = '<div class="sheet"><div class="small">メモ</div><h3>' + esc(title) + '</h3><div style="white-space:pre-wrap;font-size:14px;line-height:1.7;margin-top:8px">' + esc(text) + '</div><button class="close">閉じる</button></div>';
+  bg.onclick = function (e) { if (e.target === bg || e.target.className === 'close') document.body.removeChild(bg); };
+  document.body.appendChild(bg);
+}
+function renderSheet() {
+  $('ttl').textContent = sheetName;
+  chips(SHEETS, sheetName, function (n) { return n; }, function (n) { sheetName = n; renderSubnav(); render(); });
+  var S = SH[sheetName];
+  var z = shZoom || (isWide() ? 1 : 0.7);
+  var h = '<div class="shbar"><span class="small" id="shupd">' + (S ? 'シートの取得 ' + S.updated + '（1時間ごと・「↻ 更新」で今の内容に）' : '') + '</span>' +
+    '<div class="shzoom"><button data-z="-">－</button><button data-z="0">' + Math.round(z * 100) + '%</button><button data-z="+">＋</button></div></div>';
+  h += '<div class="shwrap" id="shbox">' + (S ? '' : '<div class="shload"><div class="spin" style="margin:0 auto 10px"></div>シートを読み込んでいます（初めては20秒ほどかかることがあります）</div>') + '</div>';
+  h += '<div class="note">スプレッドシートの見た目をそのまま表示しています（見るだけ。グラフ・画像は出ません）。オレンジの三角があるセルはタップでメモを表示。</div>';
+  $('main').innerHTML = h;
+  Array.prototype.forEach.call(document.querySelectorAll('.shzoom button'), function (b) {
+    b.onclick = function () {
+      var d = b.getAttribute('data-z'), cur = shZoom || (isWide() ? 1 : 0.7);
+      shZoom = d === '+' ? Math.min(2, cur + 0.1) : d === '-' ? Math.max(0.3, cur - 0.1) : 1;
+      shZoom = Math.round(shZoom * 10) / 10; render();
+    };
+  });
+  if (!S) {
+    var want = sheetName;
+    fetchSheet(want).then(function () { if (tab === 'sheet' && sheetName === want) render(); },
+      function (e) { if (tab === 'sheet' && sheetName === want) $('shbox').innerHTML = '<div class="shload">' + esc(e.message || e) + '<br>「↻ 更新」を押してください</div>'; });
+    return;
+  }
+  var g = sgHtml(S), box = $('shbox');
+  box.innerHTML = '<div style="zoom:' + z + '">' + g.html + '</div>';
+  Array.prototype.forEach.call(box.querySelectorAll('td.nt'), function (td) {
+    td.onclick = function () { showNote(td.textContent.trim().slice(0, 40) || sheetName, g.notes[+td.getAttribute('data-n')]); };
+  });
+}
+
 /* ---------- 予約カレンダー ---------- */
 var calJump = '';
 function ymdAdd(d, n) { return addD(d, n); }
@@ -492,16 +655,17 @@ function renderPL() {
 
 function render() {
   if (!D) return;
-  if (tab === 'home') renderHome(); else if (tab === 'cal') renderCal(); else if (tab === 'book') renderBook(); else renderPL();
+  if (tab === 'home') renderHome(); else if (tab === 'cal') renderCal(); else if (tab === 'sheet') renderSheet(); else if (tab === 'book') renderBook(); else renderPL();
+  renderSubnav();
 }
+function setNavOn() { Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (x) { x.classList.toggle('on', x.getAttribute('data-tab') === tab); }); }
 Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) {
-  b.onclick = function () {
-    tab = b.getAttribute('data-tab');
-    Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (x) { x.classList.toggle('on', x === b); });
-    render(); window.scrollTo(0, 0);
-  };
+  b.onclick = function () { tab = b.getAttribute('data-tab'); setNavOn(); render(); window.scrollTo(0, 0); };
 });
-$('ref').onclick = function () { load(true); };
+$('ref').onclick = function () {
+  if (tab === 'sheet') { delete SH[sheetName]; delete shLoading[sheetName]; render(); fetchSheet(sheetName, true).then(function () { render(); }, function () { render(); }); return; }
+  load(true);
+};
 var _rz = null, _wasWide = isWide(), _lastW = window.innerWidth;
 window.addEventListener('resize', function () {
   clearTimeout(_rz);
