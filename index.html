@@ -99,21 +99,41 @@ nav button.on{color:var(--navy)}
 .shzoom{display:inline-flex;background:#e9ecf2;border-radius:10px;padding:3px;gap:2px}
 .shzoom button{border:0;background:transparent;padding:5px 10px;border-radius:8px;font-size:13px;font-weight:800;color:var(--sub);cursor:pointer}
 .shzoom button:hover{background:#fff}
-.shwrap{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(16,24,40,.06);overflow:auto;max-height:calc(100dvh - 215px);-webkit-overflow-scrolling:touch;border:1px solid var(--line)}
-table.sg{border-collapse:collapse;table-layout:fixed;font-family:"Noto Sans JP",Arial,sans-serif;color:#000;background:#fff}
-table.sg td{padding:0 3px;overflow:hidden;white-space:pre;vertical-align:bottom;line-height:1.25;font-size:13.3px;position:relative}
+.shwrap{background:#fff;border-radius:20px;box-shadow:0 1px 3px rgba(16,24,40,.05);overflow:auto;max-height:calc(100dvh - 215px);-webkit-overflow-scrolling:touch;padding:18px 20px}
+table.sg{border-collapse:separate;border-spacing:0;table-layout:fixed;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;color:#1f2937;background:transparent;font-variant-numeric:tabular-nums}
+table.sg td{padding:0 6px;overflow:hidden;white-space:pre;vertical-align:middle;line-height:1.3;font-size:13.3px;position:relative}
+table.sg td.ln{border-bottom:1px solid #eef0f5}
+table.sg tr:hover td.ln{box-shadow:inset 0 0 0 999px rgba(66,99,235,.045)}
+table.sg td.hd{letter-spacing:.02em}
+table.sg td.hd.hl{border-top-left-radius:10px;border-bottom-left-radius:10px}
+table.sg td.hd.hr{border-top-right-radius:10px;border-bottom-right-radius:10px}
+table.sg td.kp{border-radius:12px}
+.sgring{display:inline-flex;align-items:center;gap:7px;justify-content:flex-end;width:100%}
+.sgring svg{width:22px;height:22px;transform:rotate(-90deg);flex:0 0 auto}
+.sgwrap{position:relative}
+.sgchart{position:absolute;background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(16,24,40,.08);border:1px solid #eef0f5;padding:14px 16px 10px;box-sizing:border-box;z-index:4;display:flex;flex-direction:column}
+.sgchart h4{margin:0 0 6px;font-size:14px;font-weight:800;color:#1f2a44}
+.sgchart svg{flex:1;width:100%;min-height:0}
+.sgchart .lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:#6b7280;margin-top:6px}
+.sgchart .lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.shtop{display:grid;grid-template-columns:1fr;gap:14px;margin:0 0 14px}
+.shtop .card{margin:0}
 table.sg td.ov{overflow:visible}
 table.sg td.wr{white-space:pre-wrap;word-break:break-word}
-table.sg.grid td{border:1px solid #e2e3e3}
 table.sg td.st{position:sticky;background:#fff;z-index:2}
 table.sg td.st.stc{z-index:3}
-table.sg td.nt{cursor:pointer}
-table.sg i.spk{position:absolute;left:3px;top:18%;bottom:18%;display:block}
-table.sg td.nt::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 6px 6px 0;border-color:transparent #f59f00 transparent transparent;opacity:.9}
+table.sg td.nt{cursor:help}
+table.sg i.spk{position:absolute;left:6px;top:28%;bottom:28%;display:block;border-radius:99px;opacity:.9}
+table.sg i.spkbg{position:absolute;left:6px;right:6px;top:28%;bottom:28%;display:block;border-radius:99px;background:#eef1f7}
 .shload{padding:40px 0;text-align:center;color:var(--sub);font-size:13px}
 nav .subnav{display:none}
+nav button[data-tab="sheet"]{display:none}
 @media (min-width:960px){
-  .shwrap{max-height:calc(100vh - 190px)}
+  .shwrap{max-height:none;overflow:auto}
+  body.tsheet .chips{display:none!important}
+  body.tsheet header{padding-bottom:4px}
+  body.tsheet main>*{max-width:none}
+  nav button[data-tab="sheet"]{display:flex}
   nav .subnav{display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 10px;padding-left:12px;border-left:2px solid #eef0f4}
   nav .subnav a{font-size:13px;color:var(--sub);padding:6px 10px;border-radius:8px;cursor:pointer;text-decoration:none;font-weight:600}
   nav .subnav a:hover{background:#f3f4f8}
@@ -169,15 +189,15 @@ nav .subnav{display:none}
   nav button.on{background:#eef1ff;color:var(--accent)}
   nav .navfoot{display:block;margin-top:auto;font-size:11px;color:var(--mute);padding:0 10px;line-height:1.6}
   header,main{margin-left:228px}
-  header{padding:26px 40px 10px}
-  header>*{max-width:1240px;margin-left:auto;margin-right:auto}
+  header{padding:20px 32px 8px}
+  header>*{max-width:1560px;margin-left:auto;margin-right:auto}
   h1{font-size:26px}
   .upd{font-size:12px;margin-top:2px}
   .btn-ref,.chip,.seg button,.chart rect{cursor:pointer}
   .btn-ref:hover{background:#eef1ff}
   .chip:hover{color:var(--ink)}
-  main{padding:8px 40px 48px}
-  main>*{max-width:1240px;margin-left:auto;margin-right:auto}
+  main{padding:6px 32px 40px}
+  main>*{max-width:1560px;margin-left:auto;margin-right:auto}
   .card{padding:22px 24px;border-radius:20px}
   .sec{margin:28px 2px 8px}
   .sec h2{font-size:17px}
@@ -286,7 +306,7 @@ function load(force) {
       if (!plMonth) plMonth = D.plMonth || cur;
       $('upd').textContent = '最終取得 ' + D.updated;
       render();
-      if (!window._pf) { window._pf = 1; setTimeout(prefetchSheets, 1500); }
+      if (!window._pf && isWide()) { window._pf = 1; setTimeout(prefetchSheets, 1500); }
     })
     .catch(function (e) {
       $('upd').textContent = '';
@@ -448,15 +468,11 @@ function sgCss(S) {
   return S.styles.map(function (s, i) {
     var css = '';
     if (s[0]) css += 'background:' + s[0] + ';';
-    if (s[1] && s[1] !== '#000000') css += 'color:' + s[1] + ';';
+    if (s[1] && s[1] !== '#000000' && s[1] !== '#1f1f1f') css += 'color:' + s[1] + ';';
     if (s[2]) css += 'font-weight:700;';
     if (s[3] && s[3] !== 10) css += 'font-size:' + (s[3] * 1.333).toFixed(1) + 'px;';
     if (s[4]) css += 'text-align:' + { L: 'left', C: 'center', R: 'right' }[s[4]] + ';';
     if (s[5]) css += 'vertical-align:' + { T: 'top', M: 'middle', B: 'bottom' }[s[5]] + ';';
-    if (s[7]) css += 'border-top:' + s[7] + ';';
-    if (s[8]) css += 'border-bottom:' + s[8] + ';';
-    if (s[9]) css += 'border-left:' + s[9] + ';';
-    if (s[10]) css += 'border-right:' + s[10] + ';';
     if (s[11]) css += 'font-style:italic;';
     if (s[12] || s[13]) css += 'text-decoration:' + (s[12] ? 'line-through ' : '') + (s[13] ? 'underline' : '') + ';';
     return '.sg .s' + i + '{' + css + '}';
@@ -483,7 +499,19 @@ function sgHtml(S) {
   var top = [], left = [], t = 0, l = 0;
   for (var r = 0; r < R; r++) { top.push(t); t += S.h[r]; }
   for (var c = 0; c < C; c++) { left.push(l); l += S.w[c]; }
-  var h = '<style>' + sgCss(S) + '</style><table class="sg' + (S.grid ? ' grid' : '') + '" style="width:' + l + 'px"><colgroup>';
+  // 濃い色の見出しセル（左右の端を丸める）
+  var dark = function (st) { if (!st || !st[0]) return false; var x = parseInt(st[0].slice(1), 16); return (0.299 * (x >> 16) + 0.587 * (x >> 8 & 255) + 0.114 * (x & 255)) < 110; };
+  var isDark = function (r, c) { var x = at[r + ',' + c]; return x && dark(S.styles[x[3]]); };
+  // 「稼働率」列の％は丸いグラフにする
+  var ringAt = {};
+  S.cells.forEach(function (x) {
+    if (String(x[2]).trim() !== '稼働率') return;
+    for (var rr = x[0] + 1; rr < R; rr++) {
+      var y = at[rr + ',' + x[1]]; if (!y || !/^-?[\d.]+%$/.test(String(y[2]).trim())) break;
+      ringAt[rr + ',' + x[1]] = parseFloat(y[2]) / 100;
+    }
+  });
+  var h = '<style>' + sgCss(S) + '</style><table class="sg" style="width:' + l + 'px"><colgroup>';
   S.w.forEach(function (w) { h += '<col style="width:' + w + 'px">'; });
   h += '</colgroup><tbody>';
   for (r = 0; r < R; r++) {
@@ -496,6 +524,8 @@ function sgHtml(S) {
       var cell = at[k], sp = span[k], cls = [], style = '';
       var st = cell ? S.styles[cell[3]] : null;
       if (cell) cls.push('s' + cell[3]);
+      if (st && (st[7] || st[8] || st[9] || st[10]) && !dark(st)) cls.push('ln');
+      if (dark(st)) { cls.push('hd'); if (!isDark(r, c - 1)) cls.push('hl'); if (!isDark(r, c + (sp ? sp[1] : 1))) cls.push('hr'); }
       var val = cell ? cell[2] : '';
       if (st && st[6] === 'w') cls.push('wr');
       else if (val && (!st || st[6] === 'o')) {
@@ -510,16 +540,87 @@ function sgHtml(S) {
         if (stickL) style += 'left:' + left[c] + 'px;';
       }
       var attr = '';
-      if (cell && cell[4]) { cls.push('nt'); attr = ' data-n="' + notes.length + '"'; notes.push(cell[4]); }
+      if (cell && cell[4]) { cls.push('nt'); attr = ' title="' + esc(cell[4]) + '"'; notes.push(cell[4]); }
       if (sp) attr += (sp[0] > 1 ? ' rowspan="' + sp[0] + '"' : '') + (sp[1] > 1 ? ' colspan="' + sp[1] + '"' : '');
       var inner = val ? sgRuns(val, cell[5]) : '';
-      if (spk[k]) inner += '<i class="spk" style="width:' + Math.max(1, Math.round((S.w[c] - 6) * spk[k][2])) + 'px;background:' + spk[k][3] + '"></i>';
+      if (ringAt[k] !== undefined) {
+        var p = ringAt[k], rc = occColor(p), cr = 2 * Math.PI * 8, sz = Math.max(14, Math.min(22, S.h[r] - 6));
+        inner = '<span class="sgring"><svg viewBox="0 0 22 22" style="width:' + sz + 'px;height:' + sz + 'px"><circle cx="11" cy="11" r="8" fill="none" stroke="#eef0f4" stroke-width="4"/><circle cx="11" cy="11" r="8" fill="none" stroke="' + rc + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (cr * Math.max(0, Math.min(1, p))) + ' ' + cr + '"/></svg><b style="color:' + rc + '">' + esc(val) + '</b></span>';
+      }
+      if (spk[k]) inner += '<i class="spkbg"></i><i class="spk" style="width:' + Math.max(2, Math.round((S.w[c] - 12) * spk[k][2])) + 'px;background:linear-gradient(90deg,' + spk[k][3] + 'cc,' + spk[k][3] + ')"></i>';
       h += '<td' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + (style ? ' style="' + style + '"' : '') + attr + '>' + inner + '</td>';
     }
     h += '</tr>';
   }
   h += '</tbody></table>';
-  return { html: h, notes: notes };
+  // グラフ（シートに貼ってあるもの）を同じ位置に描く
+  var W = l, H = t, ch = '';
+  (S.charts || []).forEach(function (g, gi) {
+    var x = g.ox, y = g.oy, i;
+    for (i = 0; i < g.c; i++) x += i < C ? S.w[i] : 100;
+    for (i = 0; i < g.r; i++) y += i < R ? S.h[i] : 21;
+    W = Math.max(W, x + g.w); H = Math.max(H, y + g.h);
+    ch += '<div class="sgchart" style="left:' + x + 'px;top:' + y + 'px;width:' + g.w + 'px;height:' + g.h + 'px"><h4>' + esc(g.title) + '</h4>' + sgChart(g, g.w - 32, g.h - 70) + '</div>';
+  });
+  return { html: '<div class="sgwrap" style="width:' + W + 'px;height:' + H + 'px">' + h + ch + '</div>', notes: notes, w: W };
+}
+function cnum(v) { var t = String(v === undefined ? '' : v).replace(/[¥,\s]/g, ''); if (t === '') return null; var pc = /%$/.test(t); var n = parseFloat(t); return isFinite(n) ? (pc ? n / 100 : n) : null; }
+function sgChart(g, W, H) {
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">', lg = '';
+  var axisTxt = function (x, y, t, a) { return '<text x="' + x + '" y="' + y + '" font-size="11" fill="#9aa3b2" text-anchor="' + (a || 'end') + '">' + t + '</text>'; };
+  if (g.kind === 'basic') {
+    var hc = g.hc || 0, labels = g.d.slice(hc), n = labels.length;
+    var ser = g.series.map(function (x) { return { name: hc ? String(x.d[0] || '') : '', vals: x.d.slice(hc).map(cnum), type: x.type, color: x.color || '#4263eb', label: x.label }; });
+    var cols = ser.filter(function (x) { return x.type === 'COLUMN' || x.type === 'BAR' || x.type === 'AREA'; }), lines = ser.filter(function (x) { return x.type === 'LINE'; });
+    var max = 0;
+    for (var i = 0; i < n; i++) {
+      var st = 0; cols.forEach(function (x) { st += g.stacked ? Math.max(0, x.vals[i] || 0) : 0; max = Math.max(max, x.vals[i] || 0); });
+      max = Math.max(max, st); lines.forEach(function (x) { max = Math.max(max, x.vals[i] || 0); });
+    }
+    var step = Math.pow(10, Math.floor(Math.log10(max || 1))); var nice = Math.ceil(max / step) * step; if (nice / step < 4) step /= 2; max = nice || 1;
+    var L = 46, T = 18, B = 22, pw = W - L - 6, ph = H - T - B, bw = pw / Math.max(n, 1);
+    for (var v = 0; v <= max + 1e-9; v += step) { var yy = T + ph - v / max * ph; s += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + yy + '" y2="' + yy + '" stroke="#eef0f5"/>' + axisTxt(L - 6, yy + 4, man(v)); }
+    for (i = 0; i < n; i++) {
+      var x0 = L + i * bw, acc = 0, cw = bw * (g.stacked ? 0.56 : 0.7 / Math.max(cols.length, 1));
+      cols.forEach(function (x, k) {
+        var val = Math.max(0, x.vals[i] || 0); if (!val) return; var hh = val / max * ph;
+        var bx = g.stacked ? x0 + bw * 0.22 : x0 + bw * 0.15 + k * cw;
+        var by = T + ph - (g.stacked ? acc : 0) - hh; acc += g.stacked ? hh : 0;
+        s += '<rect x="' + bx + '" y="' + by + '" width="' + cw + '" height="' + hh + '" fill="' + x.color + '" rx="2"><title>' + esc(x.name + ' ' + labels[i] + ' ' + yen(val)) + '</title></rect>';
+      });
+      var lb = String(labels[i]); var m = lb.match(/^(\d{4})-(\d{2})$/); if (m) lb = (+m[2]) + '月';
+      s += axisTxt(x0 + bw / 2, H - 5, esc(lb), 'middle');
+    }
+    lines.forEach(function (x) {
+      var pts = []; x.vals.forEach(function (v, i) { if (v !== null && v !== undefined && i < n) pts.push([L + i * bw + bw / 2, T + ph - v / max * ph, v]); });
+      s += '<polyline points="' + pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '" fill="none" stroke="' + x.color + '" stroke-width="2.5" stroke-linejoin="round"/>';
+      pts.forEach(function (p) {
+        s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="#fff" stroke="' + x.color + '" stroke-width="2.5"/>';
+        if (x.label) s += '<text x="' + p[0] + '" y="' + (p[1] - 9) + '" font-size="11.5" font-weight="800" fill="' + x.color + '" text-anchor="middle">' + man(p[2]) + '</text>';
+      });
+    });
+    ser.forEach(function (x) { if (x.name) lg += '<span><i style="background:' + x.color + (x.type === 'LINE' ? ';height:3px;vertical-align:3px;border-radius:2px' : '') + '"></i>' + esc(x.name) + '</span>'; });
+  } else if (g.kind === 'bubble') {
+    var off = cnum(g.x[0]) === null ? 1 : 0, P = [];
+    for (var j = off; j < g.x.length; j++) { var px = cnum(g.x[j]), py = cnum(g.y[j]); if (px === null || py === null) continue; P.push({ l: String(g.lab[j] || ''), x: px, y: py > 1.5 ? py / 100 : py, gp: String(g.g[j] || ''), s: cnum(g.s[j]) || 0 }); }
+    var xs = P.map(function (p) { return p.x; }), ss = P.map(function (p) { return p.s; });
+    var x0 = Math.floor((Math.min.apply(null, xs) - 0.1) * 10) / 10, x1 = Math.ceil((Math.max.apply(null, xs) + 0.05) * 10) / 10;
+    var smax = Math.max.apply(null, ss), smin = Math.min.apply(null, ss);
+    var L2 = 44, T2 = 14, B2 = 26, pw2 = W - L2 - 14, ph2 = H - T2 - B2;
+    var X = function (v) { return L2 + (v - x0) / (x1 - x0 || 1) * pw2; }, Y = function (v) { return T2 + ph2 - v * ph2; };
+    for (var q = 0; q <= 1.0001; q += 0.2) s += '<line x1="' + L2 + '" x2="' + (W - 14) + '" y1="' + Y(q) + '" y2="' + Y(q) + '" stroke="#eef0f5"/>' + axisTxt(L2 - 6, Y(q) + 4, Math.round(q * 100) + '%');
+    for (var xv = x0; xv <= x1 + 1e-9; xv += 0.1) s += axisTxt(X(xv), H - 8, xv.toFixed(1), 'middle');
+    s += axisTxt(W - 14, H - 8 - 12, '評価 →', 'end');
+    var pal = ['#4263eb', '#f0616d', '#0f9d6b', '#f59f00', '#7c5cfa', '#14a3c7', '#e8590c', '#868e96'], gi = {};
+    P.forEach(function (p) { if (gi[p.gp] === undefined) gi[p.gp] = Object.keys(gi).length; });
+    P.sort(function (a, b) { return b.s - a.s; }).forEach(function (p) {
+      var rr = g.minR + (smax > smin ? (p.s - smin) / (smax - smin) : 0.5) * (g.maxR - g.minR), col = pal[gi[p.gp] % pal.length];
+      s += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + rr + '" fill="' + col + '" fill-opacity=".55" stroke="' + col + '" stroke-width="1.5"><title>' + esc(p.l + '　評価 ' + p.x + '・稼働率 ' + pct(p.y) + '・1泊 ' + yen(p.s)) + '</title></circle>';
+      s += '<text x="' + (X(p.x) + rr + 4) + '" y="' + (Y(p.y) + 4) + '" font-size="11" fill="#374151" font-weight="600">' + esc(p.l) + '</text>';
+    });
+    Object.keys(gi).forEach(function (k) { lg += '<span><i style="background:' + pal[gi[k] % pal.length] + ';border-radius:50%"></i>' + esc(k) + '</span>'; });
+  }
+  return s + '</svg>' + (lg ? '<div class="lg">' + lg + '</div>' : '');
 }
 function showNote(title, text) {
   var bg = document.createElement('div'); bg.className = 'sheetbg';
@@ -531,19 +632,21 @@ function renderSheet() {
   $('ttl').textContent = sheetName;
   chips(SHEETS, sheetName, function (n) { return n; }, function (n) { sheetName = n; renderSubnav(); render(); });
   var S = SH[sheetName];
-  var z = shZoom || (isWide() ? 1 : 0.7);
+  var z = shZoom || (isWide() ? (window._fitZ || 1) : 0.7);
   var h = '<div class="shbar"><span class="small" id="shupd">' + (S ? 'シートの取得 ' + S.updated + '（1時間ごと・「↻ 更新」で今の内容に）' : '') + '</span>' +
     '<div class="shzoom"><button data-z="-">－</button><button data-z="0">' + Math.round(z * 100) + '%</button><button data-z="+">＋</button></div></div>';
+  if (sheetName === 'ダッシュボード' && isWide() && D.months.length) h += '<div class="shtop"><div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別の手取り（直近12か月）</h2><span class="small">濃い棒が今月</span></div><div id="shc"></div></div></div>';
   h += '<div class="shwrap" id="shbox">' + (S ? '' : '<div class="shload"><div class="spin" style="margin:0 auto 10px"></div>シートを読み込んでいます（初めては20秒ほどかかることがあります）</div>') + '</div>';
-  h += '<div class="note">スプレッドシートの見た目をそのまま表示しています（見るだけ。グラフ・画像は出ません）。オレンジの三角があるセルはタップでメモを表示。</div>';
+  h += '<div class="note">スプレッドシートの内容を見やすく表示しています（見るだけ）。説明のあるセルはマウスを乗せると表示されます。</div>';
   $('main').innerHTML = h;
   Array.prototype.forEach.call(document.querySelectorAll('.shzoom button'), function (b) {
     b.onclick = function () {
-      var d = b.getAttribute('data-z'), cur = shZoom || (isWide() ? 1 : 0.7);
-      shZoom = d === '+' ? Math.min(2, cur + 0.1) : d === '-' ? Math.max(0.3, cur - 0.1) : 1;
-      shZoom = Math.round(shZoom * 10) / 10; render();
+      var d = b.getAttribute('data-z'), cur = shZoom || (isWide() ? (window._fitZ || 1) : 0.7);
+      shZoom = d === '+' ? Math.min(2, cur + 0.1) : d === '-' ? Math.max(0.3, cur - 0.1) : null;
+      if (shZoom) shZoom = Math.round(shZoom * 100) / 100; render();
     };
   });
+  if ($('shc')) { var lm = D.months.slice(-12), cm = D.today.slice(0, 7); drawChart('shc', lm.map(function (m) { return totals(m).net; }), lm.map(mLabel), lm.indexOf(cm), function () {}); }
   if (!S) {
     var want = sheetName;
     fetchSheet(want).then(function () { if (tab === 'sheet' && sheetName === want) render(); },
@@ -551,10 +654,13 @@ function renderSheet() {
     return;
   }
   var g = sgHtml(S), box = $('shbox');
+  if (isWide() && !shZoom) {
+    // PCでは画面の幅に合わせて少し大きく表示（最大1.25倍）
+    var fit = Math.max(0.8, Math.min(1.25, (box.clientWidth - 40) / g.w));
+    fit = Math.floor(fit * 20) / 20;
+    if (fit !== z) { window._fitZ = fit; z = fit; var zb = document.querySelector('.shzoom button[data-z="0"]'); if (zb) zb.textContent = Math.round(z * 100) + '%'; }
+  }
   box.innerHTML = '<div style="zoom:' + z + '">' + g.html + '</div>';
-  Array.prototype.forEach.call(box.querySelectorAll('td.nt'), function (td) {
-    td.onclick = function () { showNote(td.textContent.trim().slice(0, 40) || sheetName, g.notes[+td.getAttribute('data-n')]); };
-  });
 }
 
 /* ---------- 予約カレンダー ---------- */
@@ -658,6 +764,8 @@ function renderPL() {
 
 function render() {
   if (!D) return;
+  if (tab === 'sheet' && !isWide()) tab = 'home', setNavOn();
+  document.body.classList.toggle('tsheet', tab === 'sheet');
   if (tab === 'home') renderHome(); else if (tab === 'cal') renderCal(); else if (tab === 'sheet') renderSheet(); else if (tab === 'book') renderBook(); else renderPL();
   renderSubnav();
 }
