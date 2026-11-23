@@ -108,6 +108,7 @@ table.sg.grid td{border:1px solid #e2e3e3}
 table.sg td.st{position:sticky;background:#fff;z-index:2}
 table.sg td.st.stc{z-index:3}
 table.sg td.nt{cursor:pointer}
+table.sg i.spk{position:absolute;left:3px;top:18%;bottom:18%;display:block}
 table.sg td.nt::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 6px 6px 0;border-color:transparent #f59f00 transparent transparent;opacity:.9}
 .shload{padding:40px 0;text-align:center;color:var(--sub);font-size:13px}
 nav .subnav{display:none}
@@ -474,6 +475,7 @@ function sgRuns(text, runs) {
 function sgHtml(S) {
   var R = S.h.length, C = S.w.length, at = {}, skip = {}, span = {}, notes = [];
   S.cells.forEach(function (c) { at[c[0] + ',' + c[1]] = c; });
+  var spk = {}; (S.spark || []).forEach(function (x) { spk[x[0] + ',' + x[1]] = x; });
   S.merges.forEach(function (m) {
     span[m[0] + ',' + m[2]] = [m[1] - m[0], m[3] - m[2]];
     for (var r = m[0]; r < m[1]; r++) for (var c = m[2]; c < m[3]; c++) if (r !== m[0] || c !== m[2]) skip[r + ',' + c] = 1;
@@ -511,6 +513,7 @@ function sgHtml(S) {
       if (cell && cell[4]) { cls.push('nt'); attr = ' data-n="' + notes.length + '"'; notes.push(cell[4]); }
       if (sp) attr += (sp[0] > 1 ? ' rowspan="' + sp[0] + '"' : '') + (sp[1] > 1 ? ' colspan="' + sp[1] + '"' : '');
       var inner = val ? sgRuns(val, cell[5]) : '';
+      if (spk[k]) inner += '<i class="spk" style="width:' + Math.max(1, Math.round((S.w[c] - 6) * spk[k][2])) + 'px;background:' + spk[k][3] + '"></i>';
       h += '<td' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + (style ? ' style="' + style + '"' : '') + attr + '>' + inner + '</td>';
     }
     h += '</tr>';
