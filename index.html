@@ -94,6 +94,56 @@ nav button.on{color:var(--navy)}
 .spin{width:28px;height:28px;border:3px solid #dfe3ea;border-top-color:var(--navy);border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .note{font-size:11px;color:var(--mute);margin:10px 4px;line-height:1.6}
+.brand{display:none}
+.navfoot{display:none}
+.wide-only{display:none}
+@media (min-width:960px){
+  nav{top:0;bottom:0;right:auto;width:228px;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-right:1px solid var(--line);padding:24px 14px;background:#fff}
+  nav .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--navy);padding:2px 10px 24px}
+  nav .brand img{width:32px;height:32px;border-radius:9px}
+  nav button{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:12px;font-size:14.5px;padding:11px 14px;border-radius:12px;cursor:pointer}
+  nav button:hover{background:#f3f4f8}
+  nav button.on{background:#eef1ff;color:var(--accent)}
+  nav .navfoot{display:block;margin-top:auto;font-size:11px;color:var(--mute);padding:0 10px;line-height:1.6}
+  header,main{margin-left:228px}
+  header{padding:26px 40px 10px}
+  header>*{max-width:1240px;margin-left:auto;margin-right:auto}
+  h1{font-size:26px}
+  .upd{font-size:12px;margin-top:2px}
+  .btn-ref,.chip,.seg button,.chart rect{cursor:pointer}
+  .btn-ref:hover{background:#eef1ff}
+  .chip:hover{color:var(--ink)}
+  main{padding:8px 40px 48px}
+  main>*{max-width:1240px;margin-left:auto;margin-right:auto}
+  .card{padding:22px 24px;border-radius:20px}
+  .sec{margin:28px 2px 8px}
+  .sec h2{font-size:17px}
+  .wide-only{display:inline}
+  .top2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:10px;margin-bottom:6px}
+  .top2>.card,.top2>.tiles{margin:0}
+  .top2 .tiles{grid-template-columns:1fr;gap:12px}
+  .top2 .tile{display:grid;grid-template-columns:1fr auto;grid-template-areas:"l v" "s v";align-items:center;column-gap:16px;padding:16px 22px;border-radius:18px}
+  .top2 .tile .lbl{grid-area:l}
+  .top2 .tile .s{grid-area:s}
+  .top2 .tile .v{grid-area:v;font-size:26px;margin:0;text-align:right}
+  .top2 .tile .lbl{font-size:13px}
+  .top2 .tile .s{font-size:11.5px}
+  .hero .big{font-size:52px}
+  .hero .lbl{font-size:13.5px}
+  .hero .split{height:8px;margin-top:14px}
+  .top2.pl{grid-template-columns:1fr 2fr}
+  .top2.pl .hero{display:flex;flex-direction:column;justify-content:center}
+  .list.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;background:transparent;box-shadow:none;overflow:visible}
+  .list.grid .it{background:#fff;border-radius:18px;border-top:0;box-shadow:0 1px 3px rgba(16,24,40,.05);padding:16px 18px;transition:box-shadow .15s}
+  .list.grid .it:hover{box-shadow:0 6px 18px rgba(16,24,40,.08)}
+  .room .ring,.room .ring svg{width:62px;height:62px}
+  .bkcols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+  .bkcols .sec:first-child,.bkcols .day:first-child{margin-top:8px}
+  .today3{grid-template-columns:repeat(3,1fr);gap:14px}
+  .today3 .tile{padding:16px 20px}
+  .today3 .tile .v{font-size:26px}
+  .bk:hover,.dept:hover{background:#fafbfd}
+}
 </style>
 </head>
 <body>
@@ -106,9 +156,11 @@ nav button.on{color:var(--navy)}
 </header>
 <main id="main"><div class="loading"><div class="spin"></div>データを読み込んでいます</div></main>
 <nav>
+  <div class="brand"><img src="icon-192.png" alt="">民泊売上</div>
   <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ホーム</button>
   <button data-tab="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>予約</button>
   <button data-tab="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>損益</button>
+  <div class="navfoot">データは売上管理シートから自動で読み込みます。</div>
 </nav>
 <script>
 var D = null, tab = 'home', month = '', sortBy = 'order', plKey = 'sales', plMonth = '';
@@ -195,21 +247,30 @@ function chips(list, sel, label, on) {
 }
 function ymLabel(m) { var p = m.split('-'); return (p[0].slice(2)) + '年' + (+p[1]) + '月'; }
 
-function barChart(vals, labels, selIdx, onTap) {
-  var W = 340, H = 150, pad = 18, n = vals.length, max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0]));
-  var span = max - min || 1, bw = (W - 8) / n, zero = 8 + (H - pad - 8) * (max / span);
-  var s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">';
+function isWide() { return window.matchMedia('(min-width:960px)').matches; }
+function barChart(vals, labels, selIdx, W, H) {
+  W = W || 340; H = H || 150;
+  var wide = W > 560, pad = wide ? 24 : 18, top = wide ? 22 : 8, fs = wide ? 12 : 9, n = vals.length, max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0]));
+  var span = max - min || 1, bw = (W - 8) / n, zero = top + (H - pad - top) * (max / span);
+  var s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" style="height:' + H + 'px">';
   s += '<line x1="0" x2="' + W + '" y1="' + zero + '" y2="' + zero + '" stroke="#e3e6ec"/>';
   vals.forEach(function (v, i) {
-    var h = Math.abs(v) / span * (H - pad - 8), x = 4 + i * bw + bw * 0.18, w = bw * 0.64;
+    var h = Math.abs(v) / span * (H - pad - top), x = 4 + i * bw + bw * (wide ? 0.24 : 0.18), w = bw * (wide ? 0.52 : 0.64);
     var y = v >= 0 ? zero - h : zero;
     var col = i === selIdx ? '#1f2a44' : v < 0 ? '#f3a3a8' : '#c7d2fe';
     s += '<rect data-i="' + i + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + Math.max(h, 1) + '" rx="3" fill="' + col + '"/>';
     s += '<rect data-i="' + i + '" x="' + (4 + i * bw) + '" y="0" width="' + bw + '" height="' + H + '" fill="transparent"/>';
-    s += '<text x="' + (4 + i * bw + bw / 2) + '" y="' + (H - 4) + '" font-size="9" text-anchor="middle" fill="' + (i === selIdx ? '#1f2a44' : '#9aa3b2') + '" font-weight="' + (i === selIdx ? 800 : 500) + '">' + labels[i] + '</text>';
+    s += '<text x="' + (4 + i * bw + bw / 2) + '" y="' + (H - 4) + '" font-size="' + fs + '" text-anchor="middle" fill="' + (i === selIdx ? '#1f2a44' : '#9aa3b2') + '" font-weight="' + (i === selIdx ? 800 : 500) + '">' + labels[i] + '</text>';
+    if (wide && v) s += '<text x="' + (4 + i * bw + bw / 2) + '" y="' + (v >= 0 ? zero - h - 6 : zero + h + 14) + '" font-size="11" text-anchor="middle" fill="' + (i === selIdx ? '#1f2a44' : '#6b7280') + '" font-weight="' + (i === selIdx ? 800 : 600) + '">' + man(v) + '</text>';
   });
   s += '</svg>';
   return s;
+}
+function drawChart(id, vals, labels, sel, onTap) {
+  var el = $(id); if (!el) return;
+  var W = Math.max(280, Math.floor(el.clientWidth || 340)), H = isWide() ? (W > 900 ? 260 : 230) : 150;
+  el.innerHTML = barChart(vals, labels, sel, W, H);
+  bindChart(el, onTap);
 }
 function bindChart(el, onTap) {
   Array.prototype.forEach.call(el.querySelectorAll('rect[data-i]'), function (r) { r.onclick = function () { onTap(+r.getAttribute('data-i')); }; });
@@ -223,7 +284,7 @@ function renderHome() {
   var occ = t.avail ? t.nights / t.avail : 0, adr = t.nights ? t.net / t.nights : 0;
   var last = D.months.slice(-12), lv = last.map(function (m) { return totals(m).net; });
   var h = '';
-  h += '<div class="card hero"><div class="lbl">' + ymLabel(month) + 'の手取り（OTA手数料控除後）</div>';
+  h += '<div class="top2"><div class="card hero"><div class="lbl">' + ymLabel(month) + 'の手取り（OTA手数料控除後）</div>';
   h += '<div class="big num">' + yen(t.net) + '</div>';
   h += '<div class="row">' + badge(t.net, tp.net) + '<span class="small">前月 ' + yen(tp.net) + '</span></div>';
   h += '<div class="small" style="margin-top:8px">販売 ' + yen(t.gross) + '　OTA手数料 ' + yen(t.fee) + '</div>';
@@ -234,14 +295,14 @@ function renderHome() {
   h += '<div class="tile"><div class="lbl">稼働率</div><div class="v num" style="color:' + occColor(occ) + '">' + pct(occ) + '</div><div class="s">前月 ' + pct(tp.avail ? tp.nights / tp.avail : 0) + '</div></div>';
   h += '<div class="tile"><div class="lbl">1泊あたり</div><div class="v num">' + yen(adr) + '</div><div class="s">清掃費込みの手取り</div></div>';
   h += '<div class="tile"><div class="lbl">販売泊数</div><div class="v num">' + t.nights + '泊</div><div class="s">ブロック ' + t.block + '日</div></div>';
-  h += '</div>';
-  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別の手取り</h2><span class="small">棒をタップで月を切替</span></div><div id="hc">' + barChart(lv, last.map(mLabel), last.indexOf(month)) + '</div></div>';
+  h += '</div></div>';
+  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別の手取り</h2><span class="small">棒をタップ<span class="wide-only">（クリック）</span>で月を切替</span></div><div id="hc"></div></div>';
   h += '<div class="sec"><h2>部屋別</h2><div class="seg"><button data-s="order" class="' + (sortBy === 'order' ? 'on' : '') + '">いつもの順</button><button data-s="net" class="' + (sortBy === 'net' ? 'on' : '') + '">手取り順</button></div></div>';
   h += '<div class="occlg"><span>稼働率の色：</span><span><span class="dot" style="background:#0f9d6b"></span>80%以上</span><span><span class="dot" style="background:#4263eb"></span>60〜79%</span><span><span class="dot" style="background:#f59f00"></span>40〜59%</span><span><span class="dot" style="background:#e0464f"></span>40%未満</span></div>';
   var a = D.agg[month] || {}, b = D.agg[pm] || {}, dd = days(month);
   var list = D.rooms.map(function (r, i) { var x = a[r] || { net: 0, nights: 0, block: 0, air: 0, bkg: 0 }; return { r: r, i: i, x: x, p: (b[r] || {}).net || 0 }; });
   if (sortBy === 'net') list.sort(function (p, q) { return q.x.net - p.x.net; });
-  h += '<div class="list">';
+  h += '<div class="list grid">';
   list.forEach(function (o) {
     var av = dd - o.x.block, oc = av ? o.x.nights / av : 0, ad = o.x.nights ? o.x.net / o.x.nights : 0, s2 = o.x.air + o.x.bkg || 1;
     h += '<div class="it room">' + ring(oc) + '<div class="body"><div class="top"><div class="nm">' + esc(o.r) + '</div><div class="amt num">' + yen(o.x.net) + '</div></div>';
@@ -250,7 +311,7 @@ function renderHome() {
   });
   h += '</div><div class="note">稼働率＝販売泊数÷（月の日数−ブロック日数）。月の途中は「確定＋予約済み」の数字です。円グラフは稼働率（色は上の目安）。細い線は手取りのうち Airbnb（赤）と Booking（青）の割合。</div>';
   $('main').innerHTML = h;
-  bindChart($('hc'), function (i) { month = last[i]; render(); window.scrollTo(0, 0); });
+  drawChart('hc', lv, last.map(mLabel), last.indexOf(month), function (i) { month = last[i]; render(); window.scrollTo(0, 0); });
   Array.prototype.forEach.call(document.querySelectorAll('.seg button[data-s]'), function (bt) { bt.onclick = function () { sortBy = bt.getAttribute('data-s'); render(); }; });
 }
 
@@ -269,10 +330,12 @@ function renderBook() {
   h += '<div class="today3"><div class="tile"><div class="lbl">チェックイン</div><div class="v">' + ins.length + '件</div></div>' +
        '<div class="tile"><div class="lbl">チェックアウト</div><div class="v">' + outs.length + '件</div></div>' +
        '<div class="tile"><div class="lbl">滞在中</div><div class="v">' + stay.length + '件</div></div></div>';
+  h += '<div class="bkcols"><div class="col">';
   h += '<div class="day"><b>今日のチェックイン</b></div><div class="list">' + (ins.length ? ins.map(bkCard).join('') : '<div class="empty">ありません</div>') + '</div>';
   h += '<div class="day"><b>今日のチェックアウト</b>（清掃）</div><div class="list">' + (outs.length ? outs.map(bkCard).join('') : '<div class="empty">ありません</div>') + '</div>';
   var tmIns = D.stays.filter(function (b) { return b.ci === tm; }), tmOuts = D.stays.filter(function (b) { return b.co === tm; });
   h += '<div class="day"><b>明日 ' + md(tm) + '</b>　イン ' + tmIns.length + '・アウト ' + tmOuts.length + '</div><div class="list">' + (tmIns.length ? tmIns.map(bkCard).join('') : '<div class="empty">チェックインはありません</div>') + '</div>';
+  h += '</div><div class="col">';
   var later = D.stays.filter(function (b) { return b.ci > tm; }), cur = '';
   h += '<div class="sec"><h2>この先30日のチェックイン</h2><span class="small">' + later.length + '件</span></div>';
   later.forEach(function (b) {
@@ -280,9 +343,10 @@ function renderBook() {
     h += bkCard(b);
   });
   if (cur) h += '</div>';
+  h += '</div><div class="col">';
   h += '<div class="sec"><h2>新着予約（直近7日）</h2><span class="small">' + D.recent.length + '件</span></div><div class="list">';
   h += D.recent.length ? D.recent.map(function (b) { return bkCard(b).replace('<div class="l2">', '<div class="l2" style="margin-bottom:2px"><span>予約日 ' + md(b.booked) + '</span><span></span></div><div class="l2">'); }).join('') : '<div class="empty">ありません</div>';
-  h += '</div><div class="note">確認済みの予約だけを表示（キャンセル・ブロックは除く）。金額は手取り（OTA手数料控除後）。</div>';
+  h += '</div></div></div><div class="note">確認済みの予約だけを表示（キャンセル・ブロックは除く）。金額は手取り（OTA手数料控除後）。</div>';
   $('main').innerHTML = h;
 }
 function addD(d, n) { var p = d.split('-').map(Number); var x = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); return x.toISOString().slice(0, 10); }
@@ -297,19 +361,19 @@ function renderPL() {
   var idx = tr.months.indexOf(plMonth), names = { sales: '売上（手取り）', op: '営業利益', ebitda: 'EBITDA' };
   var h = '<div style="margin-top:6px" class="seg">' + ['sales', 'op', 'ebitda'].map(function (k) { return '<button data-k="' + k + '" class="' + (k === plKey ? 'on' : '') + '">' + { sales: '売上', op: '営業利益', ebitda: 'EBITDA' }[k] + '</button>'; }).join('') + '</div>';
   var tot = tr.total[idx] || 0, ytd = tr.total.slice(0, idx + 1).reduce(function (s, v) { return s + (v || 0); }, 0);
-  h += '<div class="card hero"><div class="lbl">' + ymLabel(plMonth) + 'の' + names[plKey] + '（全部門）</div><div class="big num' + (tot < 0 ? ' neg' : '') + '">' + yen(tot) + '</div>';
+  h += '<div class="top2 pl"><div class="card hero"><div class="lbl">' + ymLabel(plMonth) + 'の' + names[plKey] + '（全部門）</div><div class="big num' + (tot < 0 ? ' neg' : '') + '">' + yen(tot) + '</div>';
   h += '<div class="small">年度累計（' + mLabel(tr.months[0]) + '〜' + mLabel(plMonth) + '） ' + yen(ytd) + '</div></div>';
-  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別</h2><span class="small">棒をタップで月を切替</span></div><div id="pc">' + barChart(tr.total.map(function (v) { return v || 0; }), tr.months.map(mLabel), idx) + '</div></div>';
+  h += '<div class="card"><div class="sec" style="margin:0 0 6px"><h2>月別</h2><span class="small">棒をタップで月を切替</span></div><div id="pc"></div></div></div>';
   var rows = tr.rows.map(function (r) { return { n: r.name, v: r.vals[idx] || 0 }; }).sort(function (a, b) { return b.v - a.v; });
   var mx = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); }).concat([1]));
-  h += '<div class="sec"><h2>部門別</h2></div><div class="list">';
+  h += '<div class="sec"><h2>部門別</h2></div><div class="list grid">';
   rows.forEach(function (r) {
     h += '<div class="it dept"><div class="top"><div class="nm">' + esc(r.n) + '</div><div class="v num' + (r.v < 0 ? ' neg' : '') + '">' + yen(r.v) + '</div></div>' +
       '<div class="bar"><i style="width:' + (Math.abs(r.v) / mx * 100) + '%;background:' + (r.v < 0 ? '#f3a3a8' : '#5b7cfa') + '"></i></div></div>';
   });
   h += '</div><div class="note">経費は経理の部門別損益計算書。経理データがまだ無い月は経費0のため、営業利益＝売上になります。</div>';
   $('main').innerHTML = h;
-  bindChart($('pc'), function (i) { plMonth = tr.months[i]; render(); });
+  drawChart('pc', tr.total.map(function (v) { return v || 0; }), tr.months.map(mLabel), idx, function (i) { plMonth = tr.months[i]; render(); });
   Array.prototype.forEach.call(document.querySelectorAll('.seg button[data-k]'), function (bt) { bt.onclick = function () { plKey = bt.getAttribute('data-k'); render(); }; });
 }
 
@@ -325,6 +389,11 @@ Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (
   };
 });
 $('ref').onclick = function () { load(true); };
+var _rz = null, _wasWide = isWide(), _lastW = window.innerWidth;
+window.addEventListener('resize', function () {
+  clearTimeout(_rz);
+  _rz = setTimeout(function () { if (Math.abs(window.innerWidth - _lastW) > 40 || isWide() !== _wasWide) { _lastW = window.innerWidth; _wasWide = isWide(); render(); } }, 200);
+});
 load(false);
 </script>
 </body>
