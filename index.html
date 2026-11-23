@@ -545,6 +545,7 @@ function sgHtml(S) {
       var inner = val ? sgRuns(val, cell[5]) : '';
       if (ringAt[k] !== undefined) {
         var p = ringAt[k], rc = occColor(p), cr = 2 * Math.PI * 8, sz = Math.max(14, Math.min(22, S.h[r] - 6));
+        style += 'background:transparent;';
         inner = '<span class="sgring"><svg viewBox="0 0 22 22" style="width:' + sz + 'px;height:' + sz + 'px"><circle cx="11" cy="11" r="8" fill="none" stroke="#eef0f4" stroke-width="4"/><circle cx="11" cy="11" r="8" fill="none" stroke="' + rc + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (cr * Math.max(0, Math.min(1, p))) + ' ' + cr + '"/></svg><b style="color:' + rc + '">' + esc(val) + '</b></span>';
       }
       if (spk[k]) inner += '<i class="spkbg"></i><i class="spk" style="width:' + Math.max(2, Math.round((S.w[c] - 12) * spk[k][2])) + 'px;background:linear-gradient(90deg,' + spk[k][3] + 'cc,' + spk[k][3] + ')"></i>';
@@ -577,6 +578,7 @@ function sgChart(g, W, H) {
       var st = 0; cols.forEach(function (x) { st += g.stacked ? Math.max(0, x.vals[i] || 0) : 0; max = Math.max(max, x.vals[i] || 0); });
       max = Math.max(max, st); lines.forEach(function (x) { max = Math.max(max, x.vals[i] || 0); });
     }
+    max *= lines.some(function (x) { return x.label; }) ? 1.12 : 1.04;
     var step = Math.pow(10, Math.floor(Math.log10(max || 1))); var nice = Math.ceil(max / step) * step; if (nice / step < 4) step /= 2; max = nice || 1;
     var L = 46, T = 18, B = 22, pw = W - L - 6, ph = H - T - B, bw = pw / Math.max(n, 1);
     for (var v = 0; v <= max + 1e-9; v += step) { var yy = T + ph - v / max * ph; s += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + yy + '" y2="' + yy + '" stroke="#eef0f5"/>' + axisTxt(L - 6, yy + 4, man(v)); }
@@ -613,11 +615,24 @@ function sgChart(g, W, H) {
     s += axisTxt(W - 14, H - 8 - 12, '評価 →', 'end');
     var pal = ['#4263eb', '#f0616d', '#0f9d6b', '#f59f00', '#7c5cfa', '#14a3c7', '#e8590c', '#868e96'], gi = {};
     P.forEach(function (p) { if (gi[p.gp] === undefined) gi[p.gp] = Object.keys(gi).length; });
+    var tw = function (t) { var w = 0; for (var i = 0; i < t.length; i++) w += t.charCodeAt(i) > 255 ? 11 : 6.3; return w; };
+    var boxes = [], labs = '';
+    P.forEach(function (p) { p.r = g.minR + (smax > smin ? (p.s - smin) / (smax - smin) : 0.5) * (g.maxR - g.minR); });
     P.sort(function (a, b) { return b.s - a.s; }).forEach(function (p) {
-      var rr = g.minR + (smax > smin ? (p.s - smin) / (smax - smin) : 0.5) * (g.maxR - g.minR), col = pal[gi[p.gp] % pal.length];
-      s += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + rr + '" fill="' + col + '" fill-opacity=".55" stroke="' + col + '" stroke-width="1.5"><title>' + esc(p.l + '　評価 ' + p.x + '・稼働率 ' + pct(p.y) + '・1泊 ' + yen(p.s)) + '</title></circle>';
-      s += '<text x="' + (X(p.x) + rr + 4) + '" y="' + (Y(p.y) + 4) + '" font-size="11" fill="#374151" font-weight="600">' + esc(p.l) + '</text>';
+      var col = pal[gi[p.gp] % pal.length];
+      s += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + p.r + '" fill="' + col + '" fill-opacity=".55" stroke="' + col + '" stroke-width="1.5"><title>' + esc(p.l + '　評価 ' + p.x + '・稼働率 ' + pct(p.y) + '・1泊 ' + yen(p.s)) + '</title></circle>';
     });
+    // 名前が重ならないように置く（右にはみ出す時は左側へ）
+    P.slice().sort(function (a, b) { return Y(a.y) - Y(b.y); }).forEach(function (p) {
+      var w = tw(p.l), cx = X(p.x), right = cx + p.r + 5 + w < W - 4;
+      var x0 = right ? cx + p.r + 5 : cx - p.r - 5 - w, y = Y(p.y) + 4, tries = 0;
+      var hit = function (yy) { return boxes.some(function (b) { return x0 < b[0] + b[2] && x0 + w > b[0] && yy - 11 < b[1] && yy + 2 > b[1] - 13; }); };
+      while (hit(y) && tries < 12) { tries++; y = Y(p.y) + 4 + (tries % 2 ? 1 : -1) * Math.ceil(tries / 2) * 13; }
+      boxes.push([x0, y, w]);
+      if (Math.abs(y - Y(p.y) - 4) > 6) labs += '<line x1="' + (right ? cx + p.r : cx - p.r) + '" y1="' + Y(p.y) + '" x2="' + (right ? x0 - 1 : x0 + w + 1) + '" y2="' + (y - 4) + '" stroke="#c3c9d4" stroke-width="1"/>';
+      labs += '<text x="' + (right ? x0 : x0 + w) + '" y="' + y + '" font-size="11" fill="#374151" font-weight="600" text-anchor="' + (right ? 'start' : 'end') + '" paint-order="stroke" stroke="#fff" stroke-width="3">' + esc(p.l) + '</text>';
+    });
+    s += labs;
     Object.keys(gi).forEach(function (k) { lg += '<span><i style="background:' + pal[gi[k] % pal.length] + ';border-radius:50%"></i>' + esc(k) + '</span>'; });
   }
   return s + '</svg>' + (lg ? '<div class="lg">' + lg + '</div>' : '');
