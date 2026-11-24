@@ -463,7 +463,7 @@ table.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;fon
 </nav>
 <script>
 /* ================= PC版（スマホ版とは別に、スプレッドシートの項目を一から設計） ================= */
-var PC = { page: 'dash', month: '', plMonth: '', mmetric: 'net', plKey: 'sales', rvRoom: '', rvStar: 'all', rvPeriod: 'all', rvKw: '', rvLimit: 40, calJump: '', sort: {} };
+var PC = { page: 'dash', month: '', plMonth: '', fy: 0, mmetric: 'net', plKey: 'sales', rvRoom: '', rvStar: 'all', rvPeriod: 'all', rvKw: '', rvLimit: 40, calJump: '', sort: {} };
 var PV = null, pvLoading = null;
 var PAGES = [
   ['売上', [['dash', 'ダッシュボード'], ['monthly', '月次・部屋別'], ['cal', '予約カレンダー']]],
@@ -487,6 +487,46 @@ function sgn(r) { return (r > 0 ? '+' : '') + (r * 100).toFixed(1) + '%'; }
 function cell(g, r, c) { return g[r] && g[r][c] !== undefined ? String(g[r][c]) : ''; }
 function findRow(g, txt, from) { for (var i = from || 0; i < g.length; i++) if (cell(g, i, 0) === txt) return i; return -1; }
 function ymShort(m) { var p = m.split('-'); return (+p[1]) + '月'; }
+/* ---------- 会計年度（7月〜翌6月）。2026年度＝2026年7月〜2027年6月 ---------- */
+function fyOf(m) { var p = m.split('-'); return +p[1] >= 7 ? +p[0] : +p[0] - 1; }
+function fyMonths(y) { var a = []; for (var i = 0; i < 12; i++) { var mo = 7 + i, yy = mo > 12 ? y + 1 : y, mm = mo > 12 ? mo - 12 : mo; a.push(yy + '-' + (mm < 10 ? '0' : '') + mm); } return a; }
+function fyList() {
+  var set = {}, add = function (m) { if (/^\d{4}-\d{2}$/.test(m)) set[fyOf(m)] = 1; };
+  (D.months || []).forEach(add);
+  if (PV && PV.plm && !PV.plm._err) Object.keys(PV.plm).forEach(add);
+  add(D.today.slice(0, 7));
+  return Object.keys(set).map(Number).sort(function (a, b) { return b - a; }); // 新しい年度が上
+}
+function fyCur() { var L = fyList(); if (!PC.fy || L.indexOf(PC.fy) < 0) PC.fy = fyOf(D.today.slice(0, 7)); return PC.fy; }
+function fySel(id) {
+  var cur = fyCur();
+  return '<span class="plbl">年度</span><select class="psel" id="' + id + '">' + fyList().map(function (y) {
+    return '<option value="' + y + '"' + (y === cur ? ' selected' : '') + '>' + y + '年度（' + String(y).slice(2) + '年7月〜' + String(y + 1).slice(2) + '年6月）</option>';
+  }).join('') + '</select>';
+}
+function bindFy(id, fn) { var el = $(id); if (el) el.onchange = function () { PC.fy = +this.value; if (fn) fn(); renderPC(); }; }
+// 損益の年度推移（売上・営業利益・EBITDA）を、データ側が全ての月について計算した損益（PV.plm）から作る
+function plTrends(y) {
+  var P = PV && PV.plm; if (!P || P._err) return null;
+  var ms = fyMonths(y), any = null;
+  for (var k in P) { if (P[k] && P[k].length) { any = P[k]; break; } }
+  if (!any) return null;
+  var hr0 = findRow(any, '項目'); if (hr0 < 0) return null;
+  var names = (any[hr0] || []).slice(1, -1).map(String);
+  var mk = function () { return { months: ms, rows: names.map(function (n) { return { name: n, vals: [] }; }), total: [] }; };
+  var T = { sales: mk(), op: mk(), ebitda: mk() };
+  ms.forEach(function (m, j) {
+    var g = P[m], hr = g ? findRow(g, '項目') : -1;
+    var rowOf = function (f) { if (hr < 0) return -1; for (var i = hr + 1; i < g.length; i++) if (f(cell(g, i, 0))) return i; return -1; };
+    var ri = { sales: rowOf(function (t) { return /^売上/.test(t); }), op: rowOf(function (t) { return t === '営業利益'; }), ebitda: rowOf(function (t) { return /^EBITDA/.test(t); }) };
+    Object.keys(T).forEach(function (key) {
+      var X = T[key], r = ri[key], tot = 0;
+      names.forEach(function (n, c) { var v = r >= 0 ? n0(cell(g, r, c + 1)) : 0; X.rows[c].vals[j] = v; tot += v; });
+      X.total[j] = tot;
+    });
+  });
+  return T;
+}
 
 function pcShell() {
   if ($('pcapp')) return;
@@ -635,12 +675,12 @@ function pcDash() {
 
 /* ---------- 月次_部屋別 ---------- */
 function pcMonthly() {
-  var ms = D.months, cur = D.today.slice(0, 7), k = PC.mmetric;
-  if (!PC.month || ms.indexOf(PC.month) < 0) PC.month = ms.indexOf(cur) >= 0 ? cur : ms[ms.length - 1];
-  var sel = PC.month;
+  var dm = D.months, cur = D.today.slice(0, 7), k = PC.mmetric;
+  if (!PC.month || dm.indexOf(PC.month) < 0) PC.month = dm.indexOf(cur) >= 0 ? cur : dm[dm.length - 1];
+  var sel = PC.month, fy = fyCur(), ms = fyMonths(fy);
   var names = { net: '手取り', nights: '販売泊数', occ: '稼働率', adr: '1泊あたり手取り' };
   var h = phead('月次・部屋別', '部屋ごとの月別の推移。青い列＝選択中の月（' + ymLabel(sel) + '・ダッシュボードと共通）、灰色の文字＝これからの月（予約済み分）。月の名前をクリックで選択を変更',
-    seg('pmseg', [['net', '手取り'], ['nights', '販売泊数'], ['occ', '稼働率'], ['adr', '1泊あたり']], k));
+    fySel('pmfy') + seg('pmseg', [['net', '手取り'], ['nights', '販売泊数'], ['occ', '稼働率'], ['adr', '1泊あたり']], k));
   var val = function (m, r) { var x = (D.agg[m] || {})[r]; if (!x) return null; return roomStat(m, r)[k]; };
   var totM = function (m) { var t = totals(m); return k === 'net' ? t.net : k === 'nights' ? t.nights : k === 'occ' ? (t.avail ? t.nights / t.avail : 0) : (t.nights ? t.net / t.nights : 0); };
   var totR = function (r) {
@@ -661,7 +701,7 @@ function pcMonthly() {
   var unit = k === 'net' || k === 'adr' ? '（円）' : k === 'nights' ? '（泊）' : '';
   var t = '<div class="pscroll"><table class="pt mnum"><thead><tr><th class="tl">部屋</th>' + ms.map(function (m) {
     return '<th class="mh' + (m === sel ? ' on' : '') + (m > cur ? ' fut' : '') + '" data-m="' + m + '">' + ymLabel(m) + '</th>';
-  }).join('') + '<th class="mtot">' + (k === 'occ' || k === 'adr' ? '全期間' : '合計') + '</th></tr></thead><tbody>';
+  }).join('') + '<th class="mtot">' + (k === 'occ' || k === 'adr' ? '年度平均' : '年度合計') + '</th></tr></thead><tbody>';
   D.rooms.forEach(function (r) { t += row(r, ms.map(function (m) { return val(m, r); }), totR(r)); });
   var all = 0, an = 0, aa = 0; ms.forEach(function (m) { var tt = totals(m); all += tt.net; an += tt.nights; aa += tt.avail; });
   var grand = k === 'net' ? all : k === 'nights' ? an : k === 'occ' ? (aa ? an / aa : 0) : (an ? all / an : 0);
@@ -670,7 +710,8 @@ function pcMonthly() {
   h += '<div class="pnote">稼働率＝販売泊数÷（月の日数−ブロック日数）。「—」はその月のデータがない部屋。1泊あたり手取りは清掃費の手取りを含みます。</div>';
   $('pmain').innerHTML = h;
   bindSeg('pmseg', function (v) { PC.mmetric = v; renderPC(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.mnum th.mh'), function (th) { th.onclick = function () { PC.month = th.getAttribute('data-m'); renderPC(); }; });
+  bindFy('pmfy');
+  Array.prototype.forEach.call(document.querySelectorAll('.mnum th.mh'), function (th) { th.onclick = function () { var m = th.getAttribute('data-m'); if (dm.indexOf(m) < 0) return; PC.month = m; renderPC(); }; });
 }
 
 /* ---------- 予約カレンダー ---------- */
@@ -769,14 +810,18 @@ function pcStack(el, labels, rows, sel, onTap) {
   if (onTap) Array.prototype.forEach.call(el.querySelectorAll('rect.hit'), function (r) { r.style.cursor = 'pointer'; r.onclick = function () { onTap(+r.getAttribute('data-i')); }; });
 }
 function pcPL() {
-  var T = D.trends || {}, S = T.sales, O = T.op, E = T.ebitda;
-  if (!S || !O) { $('pmain').innerHTML = phead('損益・部門別', '') + card('', '', '損益・部門別の年度推移が見つかりません'); return; }
-  var ms = S.months, cur = D.today.slice(0, 7);
-  if (!PC.plMonth || ms.indexOf(PC.plMonth) < 0) PC.plMonth = ms.indexOf(cur) >= 0 ? cur : ms[0];
+  var fy = fyCur(), cur = D.today.slice(0, 7);
+  var T = plTrends(fy) || (D.trends && D.trends.sales && fyOf(D.trends.sales.months[0]) === fy ? D.trends : {}), S = T.sales, O = T.op, E = T.ebitda;
+  if (!S || !O) { $('pmain').innerHTML = phead('損益・部門別', '', fySel('pfy')) + card('', '', fy + '年度の損益が見つかりません'); bindFy('pfy'); return; }
+  var ms = S.months;
+  if (!PC.plMonth || ms.indexOf(PC.plMonth) < 0) {
+    var withData = ms.filter(function (m, j) { return (S.total[j] || 0) !== 0 && m <= cur; });
+    PC.plMonth = ms.indexOf(cur) >= 0 ? cur : withData.length ? withData[withData.length - 1] : ms[0];
+  }
   var mi = ms.indexOf(PC.plMonth);
   var st = S.total[mi] || 0, ot = O.total[mi] || 0, et = E ? (E.total[mi] || 0) : ot;
   var ytd = function (X) { return X.total.slice(0, mi + 1).reduce(function (s, v) { return s + (v || 0); }, 0); };
-  var h = phead('損益・部門別', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
+  var h = phead('損益・部門別', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', fySel('pfy') + '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
   h += '<div class="pkpis k5">' + pk('売上', yen(st), '年度累計 ' + yen(ytd(S))) + pk('経費', yen(st - ot), '販売費及び一般管理費') +
     pk('営業利益', yen(ot), '年度累計 ' + yen(ytd(O)), ot < 0 ? 'neg' : '') + pk('営業利益率', st ? pct(ot / st) : '—', '') + pk('EBITDA', yen(et), '営業利益＋減価償却費', et < 0 ? 'neg' : '') + '</div>';
   h += card('月別の売上（部屋ごとの積み上げ・年度）', '月をクリックで切り替え', '<div id="plc"></div><div class="plg">' + S.rows.map(function (r, k) { return '<span><i style="background:' + DEPT_COL[k % DEPT_COL.length] + '"></i>' + esc(dn(r.name)) + '</span>'; }).join('') + '</div>');
@@ -814,10 +859,11 @@ function pcPL() {
   X.rows.forEach(function (row) { var s = row.vals.reduce(function (a, b) { return a + (b || 0); }, 0); yt += '<tr><td>' + esc(dn(row.name)) + '</td>' + ms.map(function (m, j) { return cellv(row.vals[j] || 0); }).join('') + '<td class="b ' + (s < 0 ? 'neg' : '') + '">' + fmt(s) + '</td></tr>'; });
   var gs = X.total.reduce(function (a, b) { return a + (b || 0); }, 0);
   yt += '<tr class="tot"><td>合計</td>' + ms.map(function (m, j) { return cellv(X.total[j] || 0); }).join('') + '<td class="' + (gs < 0 ? 'neg' : '') + '">' + fmt(gs) + '</td></tr></tbody></table></div>';
-  h += card('年度推移', seg('pyk', [['sales', '売上'], ['op', '営業利益'], ['ebitda', 'EBITDA']], PC.plKey), yt);
+  h += card('年度推移（' + fy + '年度）', seg('pyk', [['sales', '売上'], ['op', '営業利益'], ['ebitda', 'EBITDA']], PC.plKey), yt);
   h += '<div class="pnote">経費は経理の損益計算書（千円単位）を円に換算。経理の「仕入」（OTA手数料）は売上で控除済みのため含めません。M&A手数料などの一時費用は除外。経理データがまだ無い月は経費0のため、営業利益＝売上になります。</div>';
   $('pmain').innerHTML = h;
   $('ppm').onchange = function () { PC.plMonth = this.value; renderPC(); };
+  bindFy('pfy', function () { PC.plMonth = ''; });
   bindSeg('pyk', function (v) { PC.plKey = v; renderPC(); });
   pcStack($('plc'), ms.map(ymShort), S.rows, mi, function (i) { PC.plMonth = ms[i]; renderPC(); });
 }
