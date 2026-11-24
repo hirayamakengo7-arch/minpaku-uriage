@@ -466,9 +466,9 @@ table.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;fon
 var PC = { page: 'dash', month: '', plMonth: '', mmetric: 'net', plKey: 'sales', rvRoom: '', rvStar: 'all', rvPeriod: 'all', rvKw: '', rvLimit: 40, calJump: '', sort: {} };
 var PV = null, pvLoading = null;
 var PAGES = [
-  ['売上', [['dash', 'ダッシュボード'], ['monthly', '月次_部屋別'], ['cal', '予約カレンダー']]],
-  ['損益', [['pl', '損益_部門別']]],
-  ['レビュー', [['rvocc', 'レビューと稼働'], ['rvroom', 'レビュー_部屋別'], ['rvtext', 'レビュー_文面']]],
+  ['売上', [['dash', 'ダッシュボード'], ['monthly', '月次・部屋別'], ['cal', '予約カレンダー']]],
+  ['損益', [['pl', '損益・部門別']]],
+  ['レビュー', [['rvocc', 'レビューと稼働'], ['rvroom', 'レビュー・部屋別'], ['rvtext', 'レビュー・文面']]],
   ['値付け', [['flow', '料金と予約の流れ']]]
 ];
 var DEPT_COL = ['#5b7cfa', '#ff8a8a', '#4cc9a6', '#ffc75f', '#a78bfa', '#5ec8e5', '#ff9f68', '#c3cad5'];
@@ -639,7 +639,7 @@ function pcMonthly() {
   if (!PC.month || ms.indexOf(PC.month) < 0) PC.month = ms.indexOf(cur) >= 0 ? cur : ms[ms.length - 1];
   var sel = PC.month;
   var names = { net: '手取り', nights: '販売泊数', occ: '稼働率', adr: '1泊あたり手取り' };
-  var h = phead('月次 部屋別', '部屋ごとの月別の推移。青い列＝選択中の月（' + ymLabel(sel) + '・ダッシュボードと共通）、灰色の文字＝これからの月（予約済み分）。月の名前をクリックで選択を変更',
+  var h = phead('月次・部屋別', '部屋ごとの月別の推移。青い列＝選択中の月（' + ymLabel(sel) + '・ダッシュボードと共通）、灰色の文字＝これからの月（予約済み分）。月の名前をクリックで選択を変更',
     seg('pmseg', [['net', '手取り'], ['nights', '販売泊数'], ['occ', '稼働率'], ['adr', '1泊あたり']], k));
   var val = function (m, r) { var x = (D.agg[m] || {})[r]; if (!x) return null; return roomStat(m, r)[k]; };
   var totM = function (m) { var t = totals(m); return k === 'net' ? t.net : k === 'nights' ? t.nights : k === 'occ' ? (t.avail ? t.nights / t.avail : 0) : (t.nights ? t.net / t.nights : 0); };
@@ -770,13 +770,13 @@ function pcStack(el, labels, rows, sel, onTap) {
 }
 function pcPL() {
   var T = D.trends || {}, S = T.sales, O = T.op, E = T.ebitda;
-  if (!S || !O) { $('pmain').innerHTML = phead('部門別 損益', '') + card('', '', '損益_部門別の年度推移が見つかりません'); return; }
+  if (!S || !O) { $('pmain').innerHTML = phead('損益・部門別', '') + card('', '', '損益・部門別の年度推移が見つかりません'); return; }
   var ms = S.months, cur = D.today.slice(0, 7);
   if (!PC.plMonth || ms.indexOf(PC.plMonth) < 0) PC.plMonth = ms.indexOf(cur) >= 0 ? cur : ms[0];
   var mi = ms.indexOf(PC.plMonth);
   var st = S.total[mi] || 0, ot = O.total[mi] || 0, et = E ? (E.total[mi] || 0) : ot;
   var ytd = function (X) { return X.total.slice(0, mi + 1).reduce(function (s, v) { return s + (v || 0); }, 0); };
-  var h = phead('部門別 損益', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
+  var h = phead('損益・部門別', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
   h += '<div class="pkpis k5">' + pk('売上', yen(st), '年度累計 ' + yen(ytd(S))) + pk('経費', yen(st - ot), '販売費及び一般管理費') +
     pk('営業利益', yen(ot), '年度累計 ' + yen(ytd(O)), ot < 0 ? 'neg' : '') + pk('営業利益率', st ? pct(ot / st) : '—', '') + pk('EBITDA', yen(et), '営業利益＋減価償却費', et < 0 ? 'neg' : '') + '</div>';
   h += card('月別の売上（部屋ごとの積み上げ・年度）', '月をクリックで切り替え', '<div id="plc"></div><div class="plg">' + S.rows.map(function (r, k) { return '<span><i style="background:' + DEPT_COL[k % DEPT_COL.length] + '"></i>' + esc(dn(r.name)) + '</span>'; }).join('') + '</div>');
@@ -923,7 +923,7 @@ function pcRvRoom() {
     var o = { r: a, n: n0(cell(g, i, 1)), avg: cnum(cell(g, i, 2)), an: n0(cell(g, i, 3)), aa: cnum(cell(g, i, 4)), bn: n0(cell(g, i, 5)), ba: cnum(cell(g, i, 6)), rn: n0(cell(g, i, 7)), ra: cnum(cell(g, i, 8)), low: n0(cell(g, i, 9)), last: cell(g, i, 10) };
     if (a === '合計') { tot = o; break; } rows.push(o);
   }
-  var h = phead('部屋別 レビュー', 'AirHost経由のAirbnb・Booking.com。5点換算＝Booking.comの10点満点を5点満点に換算　' + esc((cell(g, 1, 0).match(/最終更新[^　]*/) || [''])[0]));
+  var h = phead('レビュー・部屋別', 'AirHost経由のAirbnb・Booking.com。5点換算＝Booking.comの10点満点を5点満点に換算　' + esc((cell(g, 1, 0).match(/最終更新[^　]*/) || [''])[0]));
   if (tot) h += '<div class="pkpis">' + pk('レビュー件数', tot.n + '件', 'Airbnb ' + tot.an + '件・Booking.com ' + tot.bn + '件') + pk('平均（5点換算）', tot.avg !== null ? tot.avg.toFixed(2) : '—', '全期間') +
     pk('直近90日の平均', tot.ra !== null ? tot.ra.toFixed(2) : '—', tot.rn + '件') + pk('★3以下', tot.low + '件', '5点換算で3以下', tot.low ? 'neg' : '') + '</div>';
   var f2 = function (v) { return v === null ? '<span class="mut">—</span>' : '<span class="' + (v < 4.5 ? 'warn' : '') + '">' + v.toFixed(2) + '</span>'; };
@@ -942,7 +942,7 @@ function pcRvRoom() {
     { h: '最新の投稿日', f: function (o) { return esc(o.last); }, v: function (o) { return o.last; } }
   ];
   h += card('部屋ごとのレビュー', '見出しをクリックで並べ替え・部屋名をクリックで文面へ', ptable('rvroom', cols, rows, tot));
-  h += '<div class="pnote">平均が4.5未満（Booking.comは9.0未満）はオレンジ。明細はシート「レビュー」、文面は「レビュー_文面」。</div>';
+  h += '<div class="pnote">平均が4.5未満（Booking.comは9.0未満）はオレンジ。明細はシート「レビュー」、文面は左メニューの「レビュー・文面」。</div>';
   $('pmain').innerHTML = h;
   Array.prototype.forEach.call(document.querySelectorAll('table[data-t="rvroom"] tbody tr:not(.tot) td:first-child'), function (td) {
     td.style.cursor = 'pointer'; td.onclick = function () { PC.rvRoom = td.textContent; PC.page = 'rvtext'; PC.rvLimit = 40; renderPC(); window.scrollTo(0, 0); };
@@ -958,7 +958,7 @@ function pcRvText() {
   var base = all.filter(function (x) { return (!since || x[1] >= since) && okStar(x[3]) && (!kw || (x[5] + ' ' + x[6]).toLowerCase().indexOf(kw) >= 0); });
   var cnt = {}; base.forEach(function (x) { cnt[x[0]] = (cnt[x[0]] || 0) + 1; });
   var list = base.filter(function (x) { return !PC.rvRoom || x[0] === PC.rvRoom; }).sort(function (a, b) { return a[1] < b[1] ? 1 : a[1] > b[1] ? -1 : 0; });
-  var h = phead('レビューの文面', '英語などのレビューはGoogle翻訳（原文はシート「レビュー」）',
+  var h = phead('レビュー・文面', '英語などのレビューはGoogle翻訳（原文はシート「レビュー」）',
     seg('rvp', [['30', '直近30日'], ['90', '直近90日'], ['365', '1年'], ['all', 'すべて']], PC.rvPeriod) +
     seg('rvs', [['all', 'すべての評価'], ['5', '★5'], ['4', '★4'], ['3', '★3以下']], PC.rvStar) +
     '<input class="psel kw" id="rvk" placeholder="キーワード" value="' + esc(PC.rvKw) + '">');
