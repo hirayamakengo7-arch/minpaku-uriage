@@ -364,7 +364,10 @@ table.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;fon
 .fex{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;color:#9aa3b2}
 .fex span{background:#f5f6f8;border-radius:6px;padding:6px 10px;color:#1f2a44}
 /* レビュー */
-.rvgrid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;align-items:start}
+.rvgrid{display:grid;grid-template-columns:1fr 1.1fr;gap:12px;align-items:start}
+.rvright .pkpis{margin-bottom:12px}
+.rvright .pcard{margin-bottom:0}
+.rvtable{margin-bottom:0}
 .rvt{display:grid;grid-template-columns:230px 1fr;gap:12px;align-items:start}
 .rvside{position:sticky;top:16px}
 .rvside .pcb{padding:8px}
@@ -465,8 +468,8 @@ var PV = null, pvLoading = null;
 var PAGES = [
   ['売上', [['dash', 'ダッシュボード'], ['monthly', '月次_部屋別'], ['cal', '予約カレンダー']]],
   ['損益', [['pl', '損益_部門別']]],
-  ['値付け', [['flow', '料金と予約の流れ']]],
-  ['レビュー', [['rvocc', 'レビューと稼働'], ['rvroom', 'レビュー_部屋別'], ['rvtext', 'レビュー_文面']]]
+  ['レビュー', [['rvocc', 'レビューと稼働'], ['rvroom', 'レビュー_部屋別'], ['rvtext', 'レビュー_文面']]],
+  ['値付け', [['flow', '料金と予約の流れ']]]
 ];
 var DEPT_COL = ['#5b7cfa', '#ff8a8a', '#4cc9a6', '#ffc75f', '#a78bfa', '#5ec8e5', '#ff9f68', '#c3cad5'];
 
@@ -867,8 +870,7 @@ function pcRvOcc() {
   var grp = {}; (PV.rvd || []).slice(1).forEach(function (x) { if (x[0]) grp[x[0]] = x[3] || ''; });
   var stat = function (r) { var t = cell(g, r, 1), d = cell(g, r, 2); return '<div class="pk"><div class="l">' + esc(cell(g, r, 0)) + '</div><div class="v">' + esc(t) + '</div><div class="s">' + esc(d) + '</div></div>'; };
   var h = phead('レビューと稼働の関係', esc(cell(g, 1, 0)));
-  h += '<div class="pkpis k2">' + stat(3) + stat(4) + '</div>';
-  h += '<div class="rvgrid">' + card('評価と稼働率', '円の大きさ＝1泊あたり手取り・色＝エリア', '<div id="rvb"></div><div class="plg" id="rvl"></div>');
+  var right = '<div class="rvright"><div class="pkpis k2">' + stat(3) + stat(4) + '</div>' + card('評価と稼働率', '円の大きさ＝1泊あたり手取り・色＝エリア', '<div id="rvb"></div><div class="plg" id="rvl"></div>', 'rvchart') + '</div>';
   var mx = Math.max.apply(null, rows.map(function (o) { return o.occ; }).concat([0.01]));
   var cols = [
     { h: '部屋', l: 1, f: function (o) { return esc(o.r); }, v: function (o) { return o.r; } },
@@ -880,14 +882,16 @@ function pcRvOcc() {
     { h: '1泊あたり', f: function (o) { return fmt(o.adr); }, v: function (o) { return o.adr; } }
   ];
   rows.forEach(function (o) { if (o.cnt < 3) o._cls = 'dim'; });
-  h += card('部屋ごとの数字', '評価の高い順', ptable('rvocc', cols, rows)) + '</div>';
+  h += '<div class="rvgrid">' + card('部屋ごとの数字', '評価の高い順', ptable('rvocc', cols, rows), 'rvtable') + right + '</div>';
   h += '<div class="pnote">' + esc(note.replace(/^※\s*/, '')) + '</div>';
   $('pmain').innerHTML = h;
-  pcBubble($('rvb'), $('rvl'), rows.filter(function (o) { return o.cnt >= 3; }).map(function (o) { return { l: o.r, x: o.rate, y: o.occ, s: o.adr, g: grp[o.r] || '' }; }));
+  var tc = document.querySelector('.rvtable'), cc = document.querySelector('.rvchart'), bh = 440;
+  if (tc && cc && getComputedStyle(document.querySelector('.rvgrid')).gridTemplateColumns.split(' ').length > 1) bh = Math.max(380, Math.round(tc.offsetHeight - cc.parentNode.offsetHeight - 16));
+  pcBubble($('rvb'), $('rvl'), bh, rows.filter(function (o) { return o.cnt >= 3; }).map(function (o) { return { l: o.r, x: o.rate, y: o.occ, s: o.adr, g: grp[o.r] || '' }; }));
 }
-function pcBubble(el, lgEl, P) {
+function pcBubble(el, lgEl, H0, P) {
   if (!el || !P.length) return;
-  var W = Math.max(420, el.clientWidth), H = 440, L = 48, T = 14, B = 34, R = 14, pw = W - L - R, ph = H - T - B;
+  var W = Math.max(420, el.clientWidth), H = H0 || 440, L = 48, T = 14, B = 34, R = 14, pw = W - L - R, ph = H - T - B;
   var xs = P.map(function (p) { return p.x; }), x0 = Math.floor((Math.min.apply(null, xs) - 0.1) * 10) / 10, x1 = Math.min(5.1, Math.ceil((Math.max.apply(null, xs) + 0.05) * 10) / 10);
   var ymax = Math.min(1, Math.ceil((Math.max.apply(null, P.map(function (p) { return p.y; })) + 0.1) * 5) / 5);
   var X = function (v) { return L + (v - x0) / (x1 - x0) * pw; }, Y = function (v) { return T + ph - v / ymax * ph; };
