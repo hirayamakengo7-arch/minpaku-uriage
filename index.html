@@ -739,6 +739,32 @@ function pcPair(el, labels, A, Bv, sel, onTap) {
   el.innerHTML = s + '</svg>';
   if (onTap) Array.prototype.forEach.call(el.querySelectorAll('rect.hit'), function (r) { r.style.cursor = 'pointer'; r.onclick = function () { onTap(+r.getAttribute('data-i')); }; });
 }
+function dn(x) { return String(x).replace(/[（(]\s*\d+\s*[〜~～\-－]\s*\d+\s*号室\s*[）)]/g, '').trim(); }
+function pcStack(el, labels, rows, sel, onTap) {
+  if (!el) return;
+  var W = Math.max(500, el.clientWidth), H = 300, L = 56, T = 30, Bm = 28, pw = W - L - 8, ph = H - T - Bm, n = labels.length;
+  var tot = labels.map(function (_, i) { return rows.reduce(function (a, r) { return a + Math.max(0, r.vals[i] || 0); }, 0); });
+  var max = Math.max.apply(null, tot.concat([1])) * 1.1;
+  var step = Math.pow(10, Math.floor(Math.log10(max))); if (max / step < 4) step /= 2; if (max / step > 8) step *= 2;
+  var Y = function (v) { return T + (max - v) / max * ph; }, bw = pw / n, w = Math.min(46, bw * 0.56);
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px;display:block">';
+  for (var v = 0; v <= max; v += step) s += '<line x1="' + L + '" x2="' + (W - 8) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v === 0 ? '#c8cdd6' : '#f0f2f6') + '"/><text x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" font-size="11" fill="#9aa3b2" text-anchor="end">' + man(v) + '</text>';
+  for (var i = 0; i < n; i++) {
+    var cx = L + i * bw + bw / 2, on = i === sel, acc = 0, tip = labels[i] + '　合計 ' + yen(tot[i]);
+    if (on) s += '<rect x="' + (L + i * bw + 2) + '" y="2" width="' + (bw - 4) + '" height="' + (T + ph - 2) + '" rx="6" fill="#f3f5fb"/>';
+    rows.forEach(function (r, k) {
+      var val = Math.max(0, r.vals[i] || 0); if (!val) return;
+      var y1 = Y(acc + val), hh = Y(acc) - y1; acc += val;
+      s += '<rect x="' + (cx - w / 2) + '" y="' + y1 + '" width="' + w + '" height="' + Math.max(0.5, hh - 1) + '" fill="' + DEPT_COL[k % DEPT_COL.length] + '" opacity="' + (sel < 0 || on ? 1 : 0.8) + '"/>';
+      tip += '\n' + dn(r.name) + '　' + yen(val);
+    });
+    if (tot[i]) s += '<text x="' + cx + '" y="' + (Y(tot[i]) - 6) + '" font-size="11" font-weight="' + (on ? 800 : 600) + '" text-anchor="middle" fill="' + (on ? '#1f2a44' : '#6b7280') + '">' + man(tot[i]) + '</text>';
+    s += '<text x="' + cx + '" y="' + (H - 8) + '" font-size="11.5" text-anchor="middle" fill="' + (on ? '#1f2a44' : '#8a93a3') + '" font-weight="' + (on ? 800 : 500) + '">' + labels[i] + '</text>';
+    s += '<rect class="hit" data-i="' + i + '" x="' + (L + i * bw) + '" y="0" width="' + bw + '" height="' + H + '" fill="transparent"><title>' + esc(tip) + '</title></rect>';
+  }
+  el.innerHTML = s + '</svg>';
+  if (onTap) Array.prototype.forEach.call(el.querySelectorAll('rect.hit'), function (r) { r.style.cursor = 'pointer'; r.onclick = function () { onTap(+r.getAttribute('data-i')); }; });
+}
 function pcPL() {
   var T = D.trends || {}, S = T.sales, O = T.op, E = T.ebitda;
   if (!S || !O) { $('pmain').innerHTML = phead('部門別 損益', '') + card('', '', '損益_部門別の年度推移が見つかりません'); return; }
@@ -750,7 +776,7 @@ function pcPL() {
   var h = phead('部門別 損益', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
   h += '<div class="pkpis k5">' + pk('売上', yen(st), '年度累計 ' + yen(ytd(S))) + pk('経費', yen(st - ot), '販売費及び一般管理費') +
     pk('営業利益', yen(ot), '年度累計 ' + yen(ytd(O)), ot < 0 ? 'neg' : '') + pk('営業利益率', st ? pct(ot / st) : '—', '') + pk('EBITDA', yen(et), '営業利益＋減価償却費', et < 0 ? 'neg' : '') + '</div>';
-  h += card('月別の売上と営業利益（年度）', '<span class="lg"><i style="background:#4263eb"></i>売上</span><span class="lg"><i style="background:#1f2a44"></i>営業利益</span><span class="lg"><i style="background:#e8590c"></i>赤字</span>　月をクリックで切り替え', '<div id="plc"></div>');
+  h += card('月別の売上（部屋ごとの積み上げ・年度）', '月をクリックで切り替え', '<div id="plc"></div><div class="plg">' + S.rows.map(function (r, k) { return '<span><i style="background:' + DEPT_COL[k % DEPT_COL.length] + '"></i>' + esc(dn(r.name)) + '</span>'; }).join('') + '</div>');
   // 損益の表：部門を横、項目を縦（スプレッドシートと同じ形）
   var pmon = cell(PV.pl, 1, 1), g = PC.plMonth === pmon ? PV.pl : ((PV.plm && PV.plm[PC.plMonth]) || PV.pl), hr = findRow(g, '項目'), tb = '';
   var z = function (v) { var n = cnum(v); return n === null ? '' : n === 0 ? '<span class="zz">0</span>' : n < 0 ? '<span class="neg">' + esc(v) + '</span>' : esc(v); };
@@ -763,13 +789,13 @@ function pcPL() {
       var cls = /^（参考/.test(name) ? 'ref' : /^売上/.test(name) ? 'main' : /^販売費及び一般管理費/.test(name) ? 'sub' : name === '営業利益' ? 'op' : /^EBITDA/.test(name) ? 'main' : '';
       body += '<tr class="' + cls + '"><td>' + esc(name) + '</td>' + heads.map(function (x, j) { return '<td class="' + (j === heads.length - 1 ? 'gt' : '') + '">' + z(row[j + 1] === undefined ? '' : String(row[j + 1])) + '</td>'; }).join('') + '</tr>';
     }
-    tb = '<div class="pscroll"><table class="pt pl2"><thead><tr><th class="tl">項目</th>' + heads.map(function (x, j) { return '<th class="' + (j === heads.length - 1 ? 'gt' : '') + '">' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+    tb = '<div class="pscroll"><table class="pt pl2"><thead><tr><th class="tl">項目</th>' + heads.map(function (x, j) { return '<th class="' + (j === heads.length - 1 ? 'gt' : '') + '">' + esc(dn(x)) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>';
   } else {
     var names = S.rows.map(function (r) { return r.name; }).concat(['合計']);
     var get = function (X, i) { return X ? (i < X.rows.length ? (X.rows[i].vals[mi] || 0) : (X.total[mi] || 0)) : 0; };
     var line = function (label, f, cls) { return '<tr class="' + (cls || '') + '"><td>' + label + '</td>' + names.map(function (n, i) { return '<td class="' + (i === names.length - 1 ? 'gt' : '') + '">' + f(i) + '</td>'; }).join('') + '</tr>'; };
     var fv = function (v) { return v === 0 ? '<span class="zz">0</span>' : '<span class="' + (v < 0 ? 'neg' : '') + '">' + fmt(v) + '</span>'; };
-    tb = '<div class="pscroll"><table class="pt pl2"><thead><tr><th class="tl">項目</th>' + names.map(function (x, i) { return '<th class="' + (i === names.length - 1 ? 'gt' : '') + '">' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    tb = '<div class="pscroll"><table class="pt pl2"><thead><tr><th class="tl">項目</th>' + names.map(function (x, i) { return '<th class="' + (i === names.length - 1 ? 'gt' : '') + '">' + esc(dn(x)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       line('売上（手取り・OTA手数料控除後）', function (i) { return fv(get(S, i)); }, 'main') +
       line('販売費及び一般管理費（合計）', function (i) { return fv(get(S, i) - get(O, i)); }, 'sub') +
       line('営業利益', function (i) { return fv(get(O, i)); }, 'op') +
@@ -782,7 +808,7 @@ function pcPL() {
   var X = { sales: S, op: O, ebitda: E || O }[PC.plKey];
   var yt = '<div class="pscroll"><table class="pt"><thead><tr><th class="tl">部門</th>' + ms.map(function (m) { return '<th class="' + (m === PC.plMonth ? 'curm' : '') + '">' + ymShort(m) + '</th>'; }).join('') + '<th>年度累計</th></tr></thead><tbody>';
   var cellv = function (v) { return '<td class="' + (v < 0 ? 'neg' : !v ? 'zz' : '') + '">' + (v ? fmt(v) : '0') + '</td>'; };
-  X.rows.forEach(function (row) { var s = row.vals.reduce(function (a, b) { return a + (b || 0); }, 0); yt += '<tr><td>' + esc(row.name) + '</td>' + ms.map(function (m, j) { return cellv(row.vals[j] || 0); }).join('') + '<td class="b ' + (s < 0 ? 'neg' : '') + '">' + fmt(s) + '</td></tr>'; });
+  X.rows.forEach(function (row) { var s = row.vals.reduce(function (a, b) { return a + (b || 0); }, 0); yt += '<tr><td>' + esc(dn(row.name)) + '</td>' + ms.map(function (m, j) { return cellv(row.vals[j] || 0); }).join('') + '<td class="b ' + (s < 0 ? 'neg' : '') + '">' + fmt(s) + '</td></tr>'; });
   var gs = X.total.reduce(function (a, b) { return a + (b || 0); }, 0);
   yt += '<tr class="tot"><td>合計</td>' + ms.map(function (m, j) { return cellv(X.total[j] || 0); }).join('') + '<td class="' + (gs < 0 ? 'neg' : '') + '">' + fmt(gs) + '</td></tr></tbody></table></div>';
   h += card('年度推移', seg('pyk', [['sales', '売上'], ['op', '営業利益'], ['ebitda', 'EBITDA']], PC.plKey), yt);
@@ -790,7 +816,7 @@ function pcPL() {
   $('pmain').innerHTML = h;
   $('ppm').onchange = function () { PC.plMonth = this.value; renderPC(); };
   bindSeg('pyk', function (v) { PC.plKey = v; renderPC(); });
-  pcPair($('plc'), ms.map(ymShort), S.total.map(function (v) { return v || 0; }), O.total.map(function (v) { return v || 0; }), mi, function (i) { PC.plMonth = ms[i]; renderPC(); });
+  pcStack($('plc'), ms.map(ymShort), S.rows, mi, function (i) { PC.plMonth = ms[i]; renderPC(); });
 }
 
 /* ---------- 料金と予約の流れ ---------- */
