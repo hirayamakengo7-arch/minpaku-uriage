@@ -842,7 +842,7 @@ function pcPL() {
   var mi = ms.indexOf(PC.plMonth);
   var st = S.total[mi] || 0, ot = O.total[mi] || 0, et = E ? (E.total[mi] || 0) : ot;
   var ytd = function (X) { return X.total.slice(0, mi + 1).reduce(function (s, v) { return s + (v || 0); }, 0); };
-  var h = phead('損益・部門別', '売上＝AirHostの手取り（OTA手数料控除後）、経費＝経理の部門別月次損益計算書', fySel('pfy') + '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
+  var h = phead('損益・部門別', '売上＝AirHostの手取り（OTA手数料控除後）を税抜（÷1.1）、経費＝経理の部門別月次損益計算書（税抜）', fySel('pfy') + '<span class="plbl">対象月</span>' + monthSel('ppm', ms, PC.plMonth));
   h += '<div class="pkpis k5">' + pk('売上', yen(st), '年度累計 ' + yen(ytd(S))) + pk('経費', yen(st - ot), '販売費及び一般管理費') +
     pk('営業利益', yen(ot), '年度累計 ' + yen(ytd(O)), ot < 0 ? 'neg' : '') + pk('営業利益率', st ? pct(ot / st) : '—', '') + pk('EBITDA', yen(et), '営業利益＋減価償却費', et < 0 ? 'neg' : '') + '</div>';
   h += card('月別の売上（部屋ごとの積み上げ・年度）', '月をクリックで切り替え', '<div id="plc"></div><div class="plg">' + S.rows.map(function (r, k) { return '<span><i style="background:' + DEPT_COL[k % DEPT_COL.length] + '"></i>' + esc(dn(r.name)) + '</span>'; }).join('') + '</div>');
@@ -1609,7 +1609,7 @@ function renderPL() {
   if (!tr) { $('main').innerHTML = '<div class="card">損益_部門別の年度推移が見つかりません</div>'; return; }
   if (tr.months.indexOf(plMonth) < 0) plMonth = tr.months.indexOf(D.today.slice(0, 7)) >= 0 ? D.today.slice(0, 7) : tr.months[0];
   chips(tr.months, plMonth, ymLabel, function (m) { plMonth = m; render(); });
-  var idx = tr.months.indexOf(plMonth), names = { sales: '売上（手取り）', op: '営業利益', ebitda: 'EBITDA' };
+  var idx = tr.months.indexOf(plMonth), names = { sales: '売上（手取り・税抜）', op: '営業利益', ebitda: 'EBITDA' };
   var h = '<div style="margin-top:6px" class="seg">' + ['sales', 'op', 'ebitda'].map(function (k) { return '<button data-k="' + k + '" class="' + (k === plKey ? 'on' : '') + '">' + { sales: '売上', op: '営業利益', ebitda: 'EBITDA' }[k] + '</button>'; }).join('') + '</div>';
   var tot = tr.total[idx] || 0, ytd = tr.total.slice(0, idx + 1).reduce(function (s, v) { return s + (v || 0); }, 0);
   h += '<div class="top2 pl"><div class="card hero"><div class="lbl">' + ymLabel(plMonth) + 'の' + names[plKey] + '（全部門）</div><div class="big num' + (tot < 0 ? ' neg' : '') + '">' + yen(tot) + '</div>';
@@ -1622,7 +1622,7 @@ function renderPL() {
     h += '<div class="it dept"><div class="top"><div class="nm">' + esc(r.n) + '</div><div class="v num' + (r.v < 0 ? ' neg' : '') + '">' + yen(r.v) + '</div></div>' +
       '<div class="bar"><i style="width:' + (Math.abs(r.v) / mx * 100) + '%;background:' + (r.v < 0 ? '#f3a3a8' : '#5b7cfa') + '"></i></div></div>';
   });
-  h += '</div><div class="note">経費は経理の部門別損益計算書。経理データがまだ無い月は経費0のため、営業利益＝売上になります。</div>';
+  h += '</div><div class="note">売上はAirHostの手取り（OTA手数料控除後）を税抜（÷1.1）にした金額。経理の損益計算書が税抜のため、そろえています（ホームの手取りは税込）。経費は経理の部門別損益計算書。経理データがまだ無い月は経費0のため、営業利益＝売上になります。</div>';
   $('main').innerHTML = h;
   drawChart('pc', tr.total.map(function (v) { return v || 0; }), tr.months.map(mLabel), idx, function (i) { plMonth = tr.months[i]; render(); });
   Array.prototype.forEach.call(document.querySelectorAll('.seg button[data-k]'), function (bt) { bt.onclick = function () { plKey = bt.getAttribute('data-k'); render(); }; });
